@@ -14,6 +14,7 @@ const common = ()=>{
                     </li>
                 ))}
             </ul>
+            <a href="/" className="">首頁</a>
         </div>
     )
 }
