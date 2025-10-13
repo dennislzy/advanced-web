@@ -5,7 +5,7 @@ import { productList } from "./productList";
 const common = ()=>{
     return (
         <div style={commonContainer}>
-            <h1 style={commonTitle}>common Page</h1>
+            <h1 style={commonTitle}>product Page</h1>
             <ul>
                 {productList.map(common => (
                     <li key={common.id} style={commonItem}>
