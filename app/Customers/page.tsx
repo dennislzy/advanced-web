@@ -1,15 +1,19 @@
-import { Button, Box, Typography } from '@mui/material'
-import Link from 'next/link'
-import CustomerList from './customers'
+import { commonContainer, commonItem, commonPrice, commonTitle } from '../style/commonStyle'
+import { customers } from './customers'
 
-export default function CustomersPage() {
-  return (
-    <Box>
-      <Typography variant="h4" sx={{ mb: 2, fontWeight: 800 }}>顧客列表</Typography>
-      <CustomerList />
-      <Box sx={{ mt: 2 }}>
-        <Button component={Link} href="/" variant="outlined">回首頁</Button>
-      </Box>
-    </Box>
-  )
+const Customer = ()=>{
+    return (
+        <div style={commonContainer}>
+            <h1 style={commonTitle}>customer Page</h1>
+            <ul>
+                {customers.map(common => (
+                    <li key={common.id} style={commonItem}>
+                        <span>{common.name}</span>
+                        <span style={commonPrice} >${common.level}</span>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    )
 }
+export default Customer;
