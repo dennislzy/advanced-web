@@ -9,7 +9,7 @@ const metadata = [
   {
     id: 2,
     title: "顧客列表",
-    link: "/Customers"
+    link: "/customer"
   }
 ];
 
