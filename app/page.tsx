@@ -1,95 +1,68 @@
-import Image from "next/image";
-import styles from "./page.module.css";
-
+'use client'
+import { Container, Box, Typography, Grid, Paper } from "@mui/material"
+import FavoriteIcon from "@mui/icons-material/Favorite"
+import AnnouncementIcon from "@mui/icons-material/Announcement"
+import { Header } from "@/component/header/header"
+import { Footer } from "@/component/footer/footer"
+import MainCard from "@/component/card/mainCard"
+const cardData = [
+  {
+    title: "寵物領養",
+    description: "瀏覽我們的寵物資料庫，了解每一位毛孩的詳細資訊、個性特點和照護需求。",
+    icon: <FavoriteIcon />,
+  },
+  {
+    title: "寵物醫療",
+    description: "查看最新的活動資訊、照護提醒和重要通知，確保您不會錯過任何重要訊息。",
+    icon: <AnnouncementIcon />,
+  },
+]
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <Header />
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      <Box component="main" sx={{ flexGrow: 1 }}>
+        <Container maxWidth="lg" sx={{ px: 2, py: { xs: 8, md: 16 } }}>
+          <Box sx={{ maxWidth: 900, mx: "auto", textAlign: "center" }}>
+            {/* 標題區塊 */}
+            <Typography
+              variant="h1"
+              sx={{
+                fontSize: { xs: "2.25rem", md: "3rem", lg: "3.75rem" },
+                fontWeight: 700,
+                lineHeight: 1.2,
+                mb: 3,
+              }}
+            >
+              歡迎來到寵物之家
+            </Typography>
+
+            <Typography
+              variant="h6"
+              sx={{
+                fontSize: { xs: "1.125rem", md: "1.25rem" },
+                fontWeight: 400,
+                lineHeight: 1.75,
+                color: "text.secondary",
+                mb: 6,
+              }}
+            >
+              我們致力於為每一位毛孩提供最溫暖的家，最專業的照護，以及最快樂的生活體驗。
+            </Typography>
+
+            {/* 卡片區塊 */}
+            <Grid container spacing={3} sx={{ mt: 6 }} display="flex" justifyContent="center">
+              {cardData.map((card, index) => (
+                <MainCard key={index} title={card.title} description={card.description} icon={card.icon} />
+              ))}
+            </Grid>
+          </Box>
+        </Container>
+      </Box>
+      <Footer />
+    </Box>
     </div>
-  );
+  )
 }
