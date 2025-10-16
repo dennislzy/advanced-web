@@ -28,8 +28,8 @@ export function Header() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
 
   const navItems = [
-    { name: "寵物詳細資訊", href: "/pets" },
-    { name: "重要公告", href: "/announcements" },
+    { name: "寵物詳細資訊", href: "/pet" },
+    { name: "領養須知", href: "/announcements" },
   ]
 
   const handleDrawerToggle = () => {

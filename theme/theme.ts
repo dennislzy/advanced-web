@@ -2,8 +2,7 @@
 
 import { createTheme, alpha } from "@mui/material/styles"
 
-// 將 oklch 顏色轉換為 hex (簡化版本,實際專案可能需要更精確的轉換)
-// 這裡使用近似值來對應你的配色
+
 const lightPalette = {
   primary: {
     main: "#E89B5F", // oklch(0.65 0.19 35) 溫暖的橘色
