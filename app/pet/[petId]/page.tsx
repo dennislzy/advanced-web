@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useState } from "react"
+import { use, useState, useEffect } from "react"
 import {
   Container,
   Box,
@@ -10,6 +10,7 @@ import {
   Grid,
   Chip,
   Divider,
+  CircularProgress,
 } from "@mui/material"
 import { useRouter } from "next/navigation"
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"
@@ -21,100 +22,43 @@ import FavoriteIcon from "@mui/icons-material/Favorite"
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"
 import CancelIcon from "@mui/icons-material/Cancel"
 import PetConfirmDialog from "@/component/confirmDialog/PetConfirmDialog"
-
-// 示範寵物資料
-const petsData: Record<string, any> = {
-  "1": {
-    id: "1",
-    petName: "小白",
-    pet_image: "/cute-white-dog.png",
-    gender: "公",
-    variety: "柴犬",
-    shelter_name: "台北市動物之家",
-    age: "2歲",
-    weight: "10公斤",
-    color: "白色",
-    isAdopted: false,
-    description: "小白是一隻活潑可愛的柴犬，個性溫和親人，喜歡和人互動玩耍。已完成絕育手術和疫苗接種，健康狀況良好。",
-    personality: ["親人", "活潑", "聰明", "愛玩"],
-  },
-  "2": {
-    id: "2",
-    petName: "咪咪",
-    pet_image: "/orange-tabby-cat.png",
-    gender: "母",
-    variety: "橘貓",
-    shelter_name: "新北市動物收容所",
-    age: "1歲",
-    weight: "4公斤",
-    color: "橘色",
-    isAdopted: false,
-    description: "咪咪是一隻溫柔的橘貓，喜歡安靜的環境，適合陪伴型的家庭。已完成絕育和疫苗接種。",
-    personality: ["溫柔", "安靜", "獨立", "親人"],
-  },
-  "3": {
-    id: "3",
-    petName: "黑皮",
-    pet_image: "/black-labrador.png",
-    gender: "公",
-    variety: "拉布拉多",
-    shelter_name: "桃園市動物保護教育園區",
-    age: "3歲",
-    weight: "28公斤",
-    color: "黑色",
-    isAdopted: true,
-    description: "黑皮是一隻忠誠的拉布拉多，精力充沛，需要較大的活動空間。適合喜歡戶外活動的家庭。",
-    personality: ["忠誠", "活潑", "友善", "精力充沛"],
-  },
-  "4": {
-    id: "4",
-    petName: "花花",
-    pet_image: "/calico-cat.png",
-    gender: "母",
-    variety: "三花貓",
-    shelter_name: "台中市動物之家",
-    age: "2歲",
-    weight: "3.5公斤",
-    color: "三花",
-    isAdopted: false,
-    description: "花花是一隻美麗的三花貓，個性獨立但也喜歡撒嬌。適合有養貓經驗的家庭。",
-    personality: ["獨立", "聰明", "愛撒嬌", "優雅"],
-  },
-  "5": {
-    id: "5",
-    petName: "阿福",
-    pet_image: "/golden-retriever.png",
-    gender: "公",
-    variety: "黃金獵犬",
-    shelter_name: "高雄市動物保護處",
-    age: "4歲",
-    weight: "32公斤",
-    color: "金黃色",
-    isAdopted: false,
-    description: "阿福是一隻溫柔的黃金獵犬，非常適合有小孩的家庭。個性穩重，喜歡陪伴家人。",
-    personality: ["溫柔", "穩重", "友善", "愛小孩"],
-  },
-  "6": {
-    id: "6",
-    petName: "小灰",
-    pet_image: "/gray-british-shorthair-cat.jpg",
-    gender: "母",
-    variety: "英國短毛貓",
-    shelter_name: "台南市動物之家",
-    age: "1.5歲",
-    weight: "4.5公斤",
-    color: "灰色",
-    isAdopted: true,
-    description: "小灰是一隻優雅的英國短毛貓，個性溫和，適應力強。是理想的室內寵物。",
-    personality: ["溫和", "安靜", "優雅", "適應力強"],
-  },
-}
+import { Pet } from "@/model/petModel"
 
 export default function PetDetailPage({ params }: { params: Promise<{ petId: string }> }) {
   const { petId } = use(params)
   const router = useRouter()
-  const pet = petsData[petId]
+  const [pet, setPet] = useState<Pet | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [openDialog, setOpenDialog] = useState(false)
+
+  useEffect(() => {
+    const fetchPet = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/pets/${petId}`)
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError('找不到此寵物資訊')
+          } else {
+            setError('載入寵物資料時發生錯誤')
+          }
+          return
+        }
+
+        const data = await response.json()
+        setPet(data)
+      } catch (err) {
+        console.error('Error fetching pet:', err)
+        setError('載入寵物資料時發生錯誤')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPet()
+  }, [petId])
     
   const handleAdoptClick = () => {
     setOpenDialog(true)
@@ -122,7 +66,9 @@ export default function PetDetailPage({ params }: { params: Promise<{ petId: str
 
   const handleConfirmAdopt = () => {
     // 這裡可以添加實際的領養邏輯
-    alert(`感謝您願意領養 ${pet.petName}！我們會盡快與您聯繫。`)
+    if (pet) {
+      alert(`感謝您願意領養 ${pet.pet_name}！我們會盡快與您聯繫。`)
+    }
     setOpenDialog(false)
   }
 
@@ -130,10 +76,18 @@ export default function PetDetailPage({ params }: { params: Promise<{ petId: str
     setOpenDialog(false)
   }
 
-  if (!pet) {
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 8, display: 'flex', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Container>
+    )
+  }
+
+  if (error || !pet) {
     return (
       <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Typography variant="h4">找不到此寵物資訊</Typography>
+        <Typography variant="h4">{error || '找不到此寵物資訊'}</Typography>
         <Button onClick={() => router.push("/")} sx={{ mt: 2 }}>
           返回首頁
         </Button>
@@ -153,8 +107,8 @@ export default function PetDetailPage({ params }: { params: Promise<{ petId: str
             <Grid item xs={12} md={6}>
               <Box
                 component="img"
-                src={pet.pet_image}
-                alt={pet.petName}
+                src={pet.pet_image || '/placeholder-pet.png'}
+                alt={pet.pet_name}
                 sx={{
                   width: "100%",
                   height: { xs: 400, md: "100%" },
@@ -167,20 +121,14 @@ export default function PetDetailPage({ params }: { params: Promise<{ petId: str
               <Box sx={{ p: 4 }}>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
                   <Typography variant="h3" component="h1" sx={{ fontWeight: 700 }}>
-                    {pet.petName}
+                    {pet.pet_name}
                   </Typography>
                   <Chip
-                    icon={pet.isAdopted ? <CheckCircleIcon /> : <FavoriteIcon />}
-                    label={pet.isAdopted ? "已被領養" : "可領養"}
-                    color={pet.isAdopted ? "default" : "success"}
+                    icon={<FavoriteIcon />}
+                    label="可領養"
+                    color="success"
                     sx={{ fontWeight: 600 }}
                   />
-                </Box>
-
-                <Box sx={{ display: "flex", gap: 1, mb: 3, flexWrap: "wrap" }}>
-                  {pet.personality.map((trait: string) => (
-                    <Chip key={trait} label={trait} color="primary" variant="outlined" />
-                  ))}
                 </Box>
 
                 <Divider sx={{ my: 3 }} />
@@ -225,53 +173,27 @@ export default function PetDetailPage({ params }: { params: Promise<{ petId: str
                       </Typography>
                     </Box>
                   </Box>
-
-                  <Box sx={{ display: "flex", gap: 4, mt: 2 }}>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        年齡
-                      </Typography>
-                      <Typography variant="body1" fontWeight={600}>
-                        {pet.age}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        體重
-                      </Typography>
-                      <Typography variant="body1" fontWeight={600}>
-                        {pet.weight}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        毛色
-                      </Typography>
-                      <Typography variant="body1" fontWeight={600}>
-                        {pet.color}
-                      </Typography>
-                    </Box>
-                  </Box>
                 </Box>
 
                 <Divider sx={{ my: 3 }} />
 
-                <Box>
-                  <Typography variant="h6" gutterBottom fontWeight={600}>
-                    寵物介紹
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.8 }}>
-                    {pet.description}
-                  </Typography>
-                </Box>
+                {pet.introduction && (
+                  <Box>
+                    <Typography variant="h6" gutterBottom fontWeight={600}>
+                      寵物介紹
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.8 }}>
+                      {pet.introduction}
+                    </Typography>
+                  </Box>
+                )}
 
                 <Button
                   variant="contained"
                   size="large"
                   fullWidth
-                  startIcon={pet.isAdopted ? <CancelIcon /> : <FavoriteIcon />}
+                  startIcon={<FavoriteIcon />}
                   onClick={handleAdoptClick}
-                  disabled={pet.isAdopted}
                   sx={{
                     mt: 4,
                     py: 1.5,
@@ -281,7 +203,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ petId: str
                     fontWeight: 600,
                   }}
                 >
-                  {pet.isAdopted ? "此寵物已被領養" : `我想領養 ${pet.petName}`}
+                  我想領養 {pet.pet_name}
                 </Button>
               </Box>
             </Grid>
@@ -291,8 +213,8 @@ export default function PetDetailPage({ params }: { params: Promise<{ petId: str
       <PetConfirmDialog
         pet={{
           id: pet.id,
-          petName: pet.petName,
-          petImage: pet.pet_image,
+          petName: pet.pet_name,
+          petImage: pet.pet_image || '/placeholder-pet.png',
           gender: pet.gender,
           variety: pet.variety,
           shelterName: pet.shelter_name
