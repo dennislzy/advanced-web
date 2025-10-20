@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { productList } from "./productList";
-import { productContainer, productItem, productPrice, productTitle } from "./productStyle";
 
 interface Product {
     id: number;
@@ -89,7 +88,8 @@ const Product = () => {
                     </li>
                 ))}
             </ul>
+            <a href="/" className="">首頁</a>
         </div>
     )
 }
-export default Product;
+export default common;
