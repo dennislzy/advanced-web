@@ -9,14 +9,50 @@ import {
 import SearchIcon from "@mui/icons-material/Search"
 import ClearIcon from "@mui/icons-material/Clear"
 import { useState } from "react"
+import { Pet } from "../card/petCard"
+
 interface SearchBarProps {
   placeholderText: string
+  onSearchResults?: (pets: Pet[]) => void
+  onLoadingChange?: (loading: boolean) => void
 }
-export default function SearchBar({ placeholderText }: SearchBarProps) {
+
+export default function SearchBar({
+  placeholderText,
+  onSearchResults,
+  onLoadingChange
+}: SearchBarProps) {
   const [searchValue, setSearchValue] = useState("")
+
+  const handleSearch = async () => {
+    if (!onSearchResults) return
+
+    try {
+      onLoadingChange?.(true)
+      const url = searchValue
+        ? `/api/pets?variety=${encodeURIComponent(searchValue)}`
+        : '/api/pets'
+
+      const response = await fetch(url)
+      const data = await response.json()
+      onSearchResults(data)
+    } catch (error) {
+      console.error('搜尋失敗：', error)
+    } finally {
+      onLoadingChange?.(false)
+    }
+  }
 
   const handleClear = () => {
     setSearchValue("")
+    // 清空時重新載入全部寵物
+    handleSearch()
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch()
+    }
   }
 
   return (
@@ -40,6 +76,7 @@ export default function SearchBar({ placeholderText }: SearchBarProps) {
           fullWidth
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
+          onKeyPress={handleKeyPress}
           placeholder={placeholderText}
           variant="standard"
           InputProps={{
@@ -47,6 +84,7 @@ export default function SearchBar({ placeholderText }: SearchBarProps) {
             startAdornment: (
               <InputAdornment position="start">
                 <IconButton
+                  onClick={handleSearch}
                   sx={{
                     p: 1.5,
                     color: "primary.main",

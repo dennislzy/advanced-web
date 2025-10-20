@@ -1,61 +1,33 @@
 "use client"
 import PetCard, { Pet } from "@/component/card/petCard"
+import Loading from "@/component/loading/Loading"
 import SearchBar from "@/component/search/petSearch"
 import { Container, Typography, Box } from "@mui/material"
-
-// 示範寵物資料
-const pets: Pet[] = [
-  {
-    id: "1",
-    petName: "小白",
-    petImage: "/cute-white-dog.png",
-    gender: "公",
-    variety: "柴犬",
-    shelterName: "台北市動物之家",
-  },
-  {
-    id: "2",
-    petName: "咪咪",
-    petImage: "/orange-tabby-cat.png",
-    gender: "母",
-    variety: "橘貓",
-    shelterName: "新北市動物收容所",
-  },
-  {
-    id: "3",
-    petName: "黑皮",
-    petImage: "/black-labrador.png",
-    gender: "公",
-    variety: "拉布拉多",
-    shelterName: "桃園市動物保護教育園區",
-  },
-  {
-    id: "4",
-    petName: "花花",
-    petImage: "/calico-cat.png",
-    gender: "母",
-    variety: "三花貓",
-    shelterName: "台中市動物之家",
-  },
-  {
-    id: "5",
-    petName: "阿福",
-    petImage: "/golden-retriever.png",
-    gender: "公",
-    variety: "黃金獵犬",
-    shelterName: "高雄市動物保護處",
-  },
-  {
-    id: "6",
-    petName: "小灰",
-    petImage: "/gray-british-shorthair-cat.jpg",
-    gender: "母",
-    variety: "英國短毛貓",
-    shelterName: "台南市動物之家",
-  },
-]
+import { useEffect, useState } from "react"
 
 export default function PetPage() {
+  const [pets, setPets] = useState<Pet[] | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    const fetchAllPet = async () => {
+      try {
+        setIsLoading(true)
+        const response = await fetch('/api/pets')
+        const data = await response.json()
+        setPets(data)
+        setIsLoading(false)
+      } catch (error) {
+        console.error('取得寵物資料失敗：', error)
+      }
+    }
+    fetchAllPet()
+  }, [])
+
+  const handleSearchResults = (results: Pet[]) => {
+    setPets(results)
+  }
+
   return (
     <>
     <Box sx={{ mb: 6, textAlign: "center" }}>
@@ -75,7 +47,11 @@ export default function PetPage() {
         每一隻毛孩都值得一個溫暖的家，讓我們一起給他們一個充滿愛的未來
         </Typography>
     </Box>
-    <SearchBar placeholderText="搜尋寵物類別名稱" />
+    <SearchBar
+      placeholderText="搜尋寵物類別名稱"
+      onSearchResults={handleSearchResults}
+      onLoadingChange={setIsLoading}
+    />
     <Box
         sx={{
         display: "grid",
@@ -102,11 +78,23 @@ export default function PetPage() {
         },
         }}
     >
-        {pets.map((pet) => (
-        <Box key={pet.id}>
+        {
+        isLoading ? (
+          <Box sx={{
+            gridColumn: '1 / -1',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '300px'
+          }}>
+            <Loading/>
+          </Box>
+        ) : pets?.map((pet) => (
+          <Box key={pet.id}>
             <PetCard pet={pet} />
-        </Box>
-        ))}
+          </Box>
+        ))
+        }
     </Box>
     </>
   )

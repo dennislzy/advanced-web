@@ -9,6 +9,7 @@ export interface Pet {
   introduction: string | null
   created_at: string
   updated_at: string
+  adopt_status: string
 }
 
 export interface CreatePetDto {

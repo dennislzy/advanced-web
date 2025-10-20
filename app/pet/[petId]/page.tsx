@@ -23,6 +23,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle"
 import CancelIcon from "@mui/icons-material/Cancel"
 import PetConfirmDialog from "@/component/confirmDialog/PetConfirmDialog"
 import { Pet } from "@/model/petModel"
+import Loading from "@/component/loading/Loading"
 
 export default function PetDetailPage({ params }: { params: Promise<{ petId: string }> }) {
   const { petId } = use(params)
@@ -77,11 +78,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ petId: str
   }
 
   if (loading) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 8, display: 'flex', justifyContent: 'center' }}>
-        <CircularProgress />
-      </Container>
-    )
+    return <Loading/>
   }
 
   if (error || !pet) {
@@ -125,7 +122,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ petId: str
                   </Typography>
                   <Chip
                     icon={<FavoriteIcon />}
-                    label="可領養"
+                    label={pet.adopt_status === '是' ? '可領養' : '已領養'}
                     color="success"
                     sx={{ fontWeight: 600 }}
                   />
@@ -194,6 +191,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ petId: str
                   fullWidth
                   startIcon={<FavoriteIcon />}
                   onClick={handleAdoptClick}
+                  disabled={pet.adopt_status === '否'}
                   sx={{
                     mt: 4,
                     py: 1.5,

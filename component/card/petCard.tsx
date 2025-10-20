@@ -6,15 +6,8 @@ import PetsIcon from "@mui/icons-material/Pets"
 import MaleIcon from "@mui/icons-material/Male"
 import FemaleIcon from "@mui/icons-material/Female"
 import HomeIcon from "@mui/icons-material/Home"
+import { Pet } from "@/model/petModel"
 
-export interface Pet {
-  id: string
-  petName: string
-  petImage: string
-  gender: string
-  variety: string
-  shelterName: string
-}
 
 export interface PetCardProps {
   pet: Pet
@@ -41,11 +34,17 @@ export default function PetCard({ pet }: PetCardProps) {
         borderRadius: 3,
       }}
     >
-      <CardMedia component="img" height="240" image={pet.petImage} alt={pet.petName} sx={{ objectFit: "cover" }} />
+      <CardMedia
+        component="img"
+        height="240"
+        image={pet.pet_image}
+        alt={pet.pet_name}
+        sx={{ objectFit: "cover" }}
+      />
       <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: 2 }}>
         <Box>
           <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 600 }}>
-            {pet.petName}
+            {pet.pet_name}
           </Typography>
         </Box>
 
@@ -71,7 +70,7 @@ export default function PetCard({ pet }: PetCardProps) {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <HomeIcon sx={{ color: "success.main", fontSize: 20 }} />
             <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
-              {pet.shelterName}
+              {pet.shelter_name}
             </Typography>
           </Box>
         </Box>
