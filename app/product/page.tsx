@@ -1,16 +1,91 @@
-import { commonContainer, commonItem, commonPrice, commonTitle } from "../style/commonStyle";
+"use client"
+
+import { useState } from "react";
 import { productList } from "./productList";
+import { commonContainer, commonItem, commonPrice, commonTitle } from "../style/commonStyle";
 
+interface Product {
+    id: number;
+    name: string;
+    price: number;
+}
 
-const common = ()=>{
+const Product = () => {
+    const [products, setProducts] = useState<Product[]>(productList);
+    const [newProductName, setNewProductName] = useState("");
+    const [newProductPrice, setNewProductPrice] = useState("");
+
+    const handleAddProduct = () => {
+
+        const price = parseFloat(newProductPrice);
+
+        const newProduct: Product = {
+            id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
+            name: newProductName,
+            price: price
+        };
+
+        setProducts([...products, newProduct]);
+        setNewProductName("");
+        setNewProductPrice("");
+    };
+
     return (
         <div style={commonContainer}>
-            <h1 style={commonTitle}>product Page</h1>
+            <h1 style={commonTitle}>Product Page</h1>
+
+            <div style={{ marginBottom: "20px", padding: "20px", border: "1px solid #ddd", borderRadius: "8px" }}>
+                <h2 style={{ marginBottom: "15px", fontSize: "18px" }}>新增產品</h2>
+                <div style={{ display: "flex", gap: "10px", marginBottom: "10px", flexWrap: "wrap", alignItems: "center" }}>
+                    <input
+                        type="text"
+                        placeholder="產品名稱"
+                        value={newProductName}
+                        onChange={(e) => setNewProductName(e.target.value)}
+                        style={{
+                            padding: "8px 12px",
+                            border: "1px solid #ccc",
+                            borderRadius: "4px",
+                            minWidth: "200px",
+                            flex: 1
+                        }}
+                    />
+                    <input
+                        type="number"
+                        placeholder="價格"
+                        value={newProductPrice}
+                        onChange={(e) => setNewProductPrice(e.target.value)}
+                        style={{
+                            padding: "8px 12px",
+                            border: "1px solid #ccc",
+                            borderRadius: "4px",
+                            width: "150px",
+                            flexShrink: 0
+                        }}
+                    />
+                    <button
+                        onClick={handleAddProduct}
+                        style={{
+                            padding: "8px 20px",
+                            backgroundColor: "#007bff",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
+                            flexShrink: 0
+                        }}
+                    >
+                        新增
+                    </button>
+                </div>
+            </div>
+
             <ul>
-                {productList.map(common => (
-                    <li key={common.id} style={commonItem}>
-                        <span>{common.name}</span>
-                        <span style={commonPrice} >${common.price}</span>
+                {products.map(product => (
+                    <li key={product.id} style={commonItem}>
+                        <span>{product.name}</span>
+                        <span style={commonPrice}>${product.price}</span>
                     </li>
                 ))}
             </ul>
@@ -18,4 +93,4 @@ const common = ()=>{
         </div>
     )
 }
-export default common;
+export default Product
