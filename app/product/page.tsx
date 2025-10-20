@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { productList } from "./productList";
+import { commonContainer, commonItem, commonPrice, commonTitle } from "../style/commonStyle";
 
 interface Product {
     id: number;
@@ -30,8 +31,8 @@ const Product = () => {
     };
 
     return (
-        <div style={productContainer}>
-            <h1 style={productTitle}>Product Page</h1>
+        <div style={commonContainer}>
+            <h1 style={commonTitle}>Product Page</h1>
 
             <div style={{ marginBottom: "20px", padding: "20px", border: "1px solid #ddd", borderRadius: "8px" }}>
                 <h2 style={{ marginBottom: "15px", fontSize: "18px" }}>新增產品</h2>
@@ -82,9 +83,9 @@ const Product = () => {
 
             <ul>
                 {products.map(product => (
-                    <li key={product.id} style={productItem}>
+                    <li key={product.id} style={commonItem}>
                         <span>{product.name}</span>
-                        <span style={productPrice}>${product.price}</span>
+                        <span style={commonPrice}>${product.price}</span>
                     </li>
                 ))}
             </ul>
@@ -92,4 +93,4 @@ const Product = () => {
         </div>
     )
 }
-export default common;
+export default Product
