@@ -1,6 +1,6 @@
 
 export interface Pet {
-  id: string
+  pet_id: string
   pet_name: string
   pet_image: string | null
   gender: string

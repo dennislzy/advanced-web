@@ -49,7 +49,7 @@ export class PetService extends BaseService {
         const { data: pet, error } = await supabase
             .from('pet')
             .select('*')
-            .eq('id', id)
+            .eq('pet_id', id)
             .single()
 
         if (error) {
@@ -64,7 +64,7 @@ export class PetService extends BaseService {
         const { data: pet, error } = await supabase
             .from('pet')
             .update(data)
-            .eq('id', id)
+            .eq('pet_id', id)
             .select()
             .single()
 

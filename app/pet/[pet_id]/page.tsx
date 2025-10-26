@@ -19,14 +19,12 @@ import FemaleIcon from "@mui/icons-material/Female"
 import PetsIcon from "@mui/icons-material/Pets"
 import HomeIcon from "@mui/icons-material/Home"
 import FavoriteIcon from "@mui/icons-material/Favorite"
-import CheckCircleIcon from "@mui/icons-material/CheckCircle"
-import CancelIcon from "@mui/icons-material/Cancel"
 import PetConfirmDialog from "@/component/confirmDialog/PetConfirmDialog"
 import { Pet } from "@/model/petModel"
 import Loading from "@/component/loading/Loading"
 
-export default function PetDetailPage({ params }: { params: Promise<{ petId: string }> }) {
-  const { petId } = use(params)
+export default function PetDetailPage({ params }: { params: Promise<{ pet_id: string }> }) {
+  const { pet_id } = use(params)
   const router = useRouter()
   const [pet, setPet] = useState<Pet | null>(null)
   const [loading, setLoading] = useState(true)
@@ -37,7 +35,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ petId: str
     const fetchPet = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/pets/${petId}`)
+        const response = await fetch(`/api/pets/${pet_id}`)
 
         if (!response.ok) {
           if (response.status === 404) {
@@ -59,7 +57,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ petId: str
     }
 
     fetchPet()
-  }, [petId])
+  }, [pet_id])
     
   const handleAdoptClick = () => {
     setOpenDialog(true)
@@ -210,7 +208,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ petId: str
       </Container>
       <PetConfirmDialog
         pet={{
-          id: pet.id,
+          id: pet.pet_id,
           petName: pet.pet_name,
           petImage: pet.pet_image || '/placeholder-pet.png',
           gender: pet.gender,

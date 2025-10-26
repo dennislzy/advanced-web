@@ -3,12 +3,12 @@ import { NextRequest } from "next/server"
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: Promise<{ pet_id: string }> }
 ) {
     try {
-        const { id } = await params
+        const { pet_id } = await params
         const pet_service = new PetService()
-        const pet = await pet_service.getPetById(id)
+        const pet = await pet_service.getPetById(pet_id)
 
         if (!pet) {
             return new Response(JSON.stringify({ error: 'Pet not found' }), {

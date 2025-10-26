@@ -17,7 +17,7 @@ export default function PetCard({ pet }: PetCardProps) {
   const router = useRouter()
 
   const handleViewDetails = () => {
-    router.push(`/pet/${pet.id}`)
+    router.push(`/pet/${pet.pet_id}`)
   }
 
   return (

@@ -125,6 +125,20 @@ export function Header() {
                     {item.name}
                   </Button>
                 ))}
+                <Button sx={{
+                      color: "text.primary",
+                      fontWeight: 500,
+                      fontSize: "0.875rem",
+                      px: 2,
+                      py: 1,
+                      borderRadius: 1,
+                      textTransform: "none",
+                      "&:hover": {
+                        backgroundColor: "action.hover",
+                      },
+                    }}>
+                  歡迎
+                </Button>
               </Box>
             )}
 
@@ -181,6 +195,7 @@ export function Header() {
                 </ListItemButton>
               </ListItem>
             ))}
+            hi
           </List>
         </Box>
       </Drawer>

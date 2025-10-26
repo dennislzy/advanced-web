@@ -1,7 +1,8 @@
 "use client"
-import PetCard, { Pet } from "@/component/card/petCard"
+import PetCard from "@/component/card/petCard"
 import Loading from "@/component/loading/Loading"
 import SearchBar from "@/component/search/petSearch"
+import { Pet } from "@/model/petModel"
 import { Container, Typography, Box } from "@mui/material"
 import { useEffect, useState } from "react"
 
@@ -90,7 +91,7 @@ export default function PetPage() {
             <Loading/>
           </Box>
         ) : pets?.map((pet) => (
-          <Box key={pet.id}>
+          <Box key={pet.pet_id}>
             <PetCard pet={pet} />
           </Box>
         ))
