@@ -8,6 +8,7 @@ export async function GET() {
       .select('*')
 
     if (error) {
+      console.error('Supabase error:', error)
       return NextResponse.json(
         { error: error.message },
         { status: 500 }
@@ -16,6 +17,7 @@ export async function GET() {
 
     return NextResponse.json({ data }, { status: 200 })
   } catch (error) {
+    console.error('Server error:', error)
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }
