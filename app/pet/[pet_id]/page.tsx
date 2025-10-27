@@ -70,7 +70,8 @@ export default function PetDetailPage({ params }: { params: Promise<{ pet_id: st
       // TODO: 替換成實際的用戶帳號（需要實現用戶認證系統）
       const user_account = "test1@gmail.com"
 
-      const response = await fetch('/api/adopt', {
+      // 1. 創建領養記錄
+      const adoptResponse = await fetch('/api/adopt', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,16 +82,34 @@ export default function PetDetailPage({ params }: { params: Promise<{ pet_id: st
         })
       })
 
-      if (!response.ok) {
+      if (!adoptResponse.ok) {
         throw new Error('領養申請失敗')
       }
 
-      const result = await response.json()
+      // 2. 更新寵物的領養狀態為 '否' (已領養)
+      const updateResponse = await fetch(`/api/pets/${pet.pet_id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          adopt_status: '否'
+        })
+      })
+
+      if (!updateResponse.ok) {
+        console.error('更新寵物狀態失敗')
+      }
+
       alert(`感謝您願意領養 ${pet.pet_name}！我們會盡快與您聯繫。`)
       setOpenDialog(false)
 
-      // 可選：領養成功後返回首頁或刷新寵物資料
-      // router.push('/')
+      // 重新載入寵物資料以顯示最新狀態
+      const refreshResponse = await fetch(`/api/pets/${pet_id}`)
+      if (refreshResponse.ok) {
+        const updatedPet = await refreshResponse.json()
+        setPet(updatedPet)
+      }
     } catch (error) {
       console.error('Error adopting pet:', error)
       alert('領養申請過程中發生錯誤，請稍後再試。')

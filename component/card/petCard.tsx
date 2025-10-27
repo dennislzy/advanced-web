@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardContent, CardMedia, Typography, Button, Box } from "@mui/material"
+import { Card, CardContent, CardMedia, Typography, Button, Box, CardActions } from "@mui/material"
 import { useRouter } from "next/navigation"
 import PetsIcon from "@mui/icons-material/Pets"
 import MaleIcon from "@mui/icons-material/Male"
@@ -11,9 +11,17 @@ import { Pet } from "@/model/petModel"
 
 export interface PetCardProps {
   pet: Pet
+  statusChip?: React.ReactNode // 可選的狀態標籤（如 "已領養" chip）
+  actions?: React.ReactNode // 可選的自定義按鈕區域
+  showViewDetailsButton?: boolean // 是否顯示查看詳細資訊按鈕，預設為 true
 }
 
-export default function PetCard({ pet }: PetCardProps) {
+export default function PetCard({
+  pet,
+  statusChip,
+  actions,
+  showViewDetailsButton = true
+}: PetCardProps) {
   const router = useRouter()
 
   const handleViewDetails = () => {
@@ -42,10 +50,11 @@ export default function PetCard({ pet }: PetCardProps) {
         sx={{ objectFit: "cover" }}
       />
       <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: 2 }}>
-        <Box>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
           <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 600 }}>
             {pet.pet_name}
           </Typography>
+          {statusChip}
         </Box>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
@@ -75,22 +84,29 @@ export default function PetCard({ pet }: PetCardProps) {
           </Box>
         </Box>
 
-        <Button
-          variant="contained"
-          fullWidth
-          onClick={handleViewDetails}
-          sx={{
-            mt: "auto",
-            py: 1.5,
-            borderRadius: 2,
-            textTransform: "none",
-            fontSize: "1rem",
-            fontWeight: 600,
-          }}
-        >
-          查看詳細資訊
-        </Button>
+        {showViewDetailsButton && (
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={handleViewDetails}
+            sx={{
+              mt: "auto",
+              py: 1.5,
+              borderRadius: 2,
+              textTransform: "none",
+              fontSize: "1rem",
+              fontWeight: 600,
+            }}
+          >
+            查看詳細資訊
+          </Button>
+        )}
       </CardContent>
+      {actions && (
+        <CardActions sx={{ p: 2, pt: 0 }}>
+          {actions}
+        </CardActions>
+      )}
     </Card>
   )
 }

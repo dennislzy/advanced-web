@@ -1,4 +1,5 @@
 import { AdoptService } from "@/services/adopt_dervice";
+import { PetService } from "@/services/pet_service";
 
 export async function GET(
     request: Request,
@@ -16,9 +17,9 @@ export async function GET(
     }
 
     const adopt_service = new AdoptService();
-    const applications = await adopt_service.getAdoptApplicationsByUser(user_account);
+    const adopt_records = await adopt_service.getAdoptApplicationsByUser(user_account)
 
-    return new Response(JSON.stringify(applications), {
+    return new Response(JSON.stringify(adopt_records), {
         status: 200,
         headers: {
             'Content-Type': 'application/json',

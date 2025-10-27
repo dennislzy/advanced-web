@@ -30,6 +30,7 @@ export function Header() {
   const navItems = [
     { name: "寵物詳細資訊", href: "/pet" },
     { name: "領養須知", href: "/announcements" },
+    { name: "我的領養申請", href: "/pet/my-adoptions" },
   ]
 
   const handleDrawerToggle = () => {

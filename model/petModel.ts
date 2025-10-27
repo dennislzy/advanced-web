@@ -28,4 +28,5 @@ export interface UpdatePetDto {
   variety?: string
   shelter_name?: string
   introduction?: string
+  adopt_status?: string
 }
