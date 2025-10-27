@@ -63,12 +63,38 @@ export default function PetDetailPage({ params }: { params: Promise<{ pet_id: st
     setOpenDialog(true)
   }
 
-  const handleConfirmAdopt = () => {
-    // 這裡可以添加實際的領養邏輯
-    if (pet) {
+  const handleConfirmAdopt = async () => {
+    if (!pet) return
+
+    try {
+      // TODO: 替換成實際的用戶帳號（需要實現用戶認證系統）
+      const user_account = "test1@gmail.com"
+
+      const response = await fetch('/api/adopt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pet_id: pet.pet_id,
+          user_account: user_account
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('領養申請失敗')
+      }
+
+      const result = await response.json()
       alert(`感謝您願意領養 ${pet.pet_name}！我們會盡快與您聯繫。`)
+      setOpenDialog(false)
+
+      // 可選：領養成功後返回首頁或刷新寵物資料
+      // router.push('/')
+    } catch (error) {
+      console.error('Error adopting pet:', error)
+      alert('領養申請過程中發生錯誤，請稍後再試。')
     }
-    setOpenDialog(false)
   }
 
   const handleCancelAdopt = () => {
