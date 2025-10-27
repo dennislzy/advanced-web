@@ -11,7 +11,7 @@ export const commonContainer = {
 export const commonTitle = {
     fontSize: '24px',
     marginBottom: '15px',
-    textAlign: 'center',
+    textAlign: 'center' as const,
     color: '#333',
 }
 export const commonItem = {
