@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react";
-import { productList } from "./productList";
+import { useState, useEffect } from "react";
 import { commonContainer, commonItem, commonPrice, commonTitle } from "../style/commonStyle";
 
 interface Product {
@@ -11,9 +10,28 @@ interface Product {
 }
 
 const Product = () => {
-    const [products, setProducts] = useState<Product[]>(productList);
+    const [products, setProducts] = useState<Product[]>([]);
     const [newProductName, setNewProductName] = useState("");
     const [newProductPrice, setNewProductPrice] = useState("");
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchProducts();
+    }, []);
+
+    const fetchProducts = async () => {
+        try {
+            const response = await fetch('/api/product');
+            const result = await response.json();
+            if (result.data) {
+                setProducts(result.data);
+            }
+        } catch (error) {
+            console.error('Error fetching products:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleAddProduct = () => {
 
@@ -81,14 +99,18 @@ const Product = () => {
                 </div>
             </div>
 
-            <ul>
-                {products.map(product => (
-                    <li key={product.id} style={commonItem}>
-                        <span>{product.name}</span>
-                        <span style={commonPrice}>${product.price}</span>
-                    </li>
-                ))}
-            </ul>
+            {loading ? (
+                <p>載入中...</p>
+            ) : (
+                <ul>
+                    {products.map(product => (
+                        <li key={product.id} style={commonItem}>
+                            <span>{product.name}</span>
+                            <span style={commonPrice}>${product.price}</span>
+                        </li>
+                    ))}
+                </ul>
+            )}
             <a href="/" className="">首頁</a>
         </div>
     )
