@@ -15,6 +15,7 @@ const Product = () => {
     const [newProductName, setNewProductName] = useState("");
     const [newProductPrice, setNewProductPrice] = useState("");
     const [loading, setLoading] = useState(true);
+    const [openDialog, setOpenDialog] = useState(false);
 
     useEffect(() => {
         fetchProducts();
@@ -32,6 +33,12 @@ const Product = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+        setNewProductName("");
+        setNewProductPrice("");
     };
 
     const handleAddProduct = () => {
