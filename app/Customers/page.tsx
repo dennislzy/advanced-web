@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState, FormEvent } from 'react';
-import { commonContainer, commonItem, commonPrice, commonTitle } from '../style/commonStyle';
+import { commonContainer, commonItem, commonTitle } from '../style/commonStyle';
 
 type CustomerRow = {
   id: number;
   name: string;
-  gender: string;
+  gender: string | null;
 };
 
 const Customer = () => {
@@ -17,15 +17,39 @@ const Customer = () => {
 
   // Dialog & form
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState({ name: '', gender: '男' });
 
   const openDialog = () => dialogRef.current?.showModal();
   const closeDialog = () => {
     dialogRef.current?.close();
-    setError(null); // 關閉時清除錯誤
+    setError(null);
+    setIsEditing(false);
+    setEditingId(null);
+    setForm({ name: '', gender: '男' });
   };
 
-  // fetch customers from backend API
+  // 新增對話框
+  const openAdd = () => {
+    setIsEditing(false);
+    setEditingId(null);
+    setForm({ name: '', gender: '男' });
+    openDialog();
+  };
+
+  // 編輯對話框
+  const openEditFor = (customer: CustomerRow) => {
+    setIsEditing(true);
+    setEditingId(customer.id);
+    setForm({ 
+      name: customer.name, 
+      gender: customer.gender || '男' 
+    });
+    openDialog();
+  };
+
+  // fetch list from backend API
   async function fetchCustomers() {
     setLoading(true);
     setError(null);
@@ -36,7 +60,6 @@ const Customer = () => {
         throw new Error(j?.error ?? j?.message ?? `HTTP ${res.status}`);
       }
       const json = await res.json();
-      // 修復:處理不同的回傳格式
       const data: CustomerRow[] = Array.isArray(json) ? json : (json.data || []);
       setList(data);
     } catch (err: unknown) {
@@ -52,17 +75,81 @@ const Customer = () => {
     fetchCustomers();
   }, []);
 
+  // 提交表單 (新增或編輯)
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return;
 
-    setError(null); // 提交前清除錯誤
+    setError(null);
+    
+    try {
+      if (isEditing && editingId) {
+        // 編輯模式
+        const res = await fetch('/api/customer', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            id: editingId, 
+            name: form.name.trim(), 
+            gender: form.gender 
+          }),
+        });
+        
+        if (!res.ok) {
+          const j = await res.json().catch(() => null);
+          throw new Error(j?.error ?? j?.message ?? `HTTP ${res.status}`);
+        }
+        
+        const json = await res.json();
+        const updatedRow: CustomerRow = json.data || json;
+        
+        // 更新列表中的項目
+        setList(prev => prev.map(item => 
+          item.id === editingId ? updatedRow : item
+        ));
+        
+      } else {
+        // 新增模式
+        const res = await fetch('/api/customer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            name: form.name.trim(), 
+            gender: form.gender 
+          }),
+        });
+        
+        if (!res.ok) {
+          const j = await res.json().catch(() => null);
+          throw new Error(j?.error ?? j?.message ?? `HTTP ${res.status}`);
+        }
+        
+        const json = await res.json();
+        const newRow: CustomerRow = json.data || json;
+        
+        // 新增到列表開頭
+        setList(prev => [newRow, ...prev]);
+      }
+      
+      closeDialog();
+      
+    } catch (err: unknown) {
+      console.error('submit error', err);
+      setError(err instanceof Error ? err.message : isEditing ? '更新失敗' : '新增失敗');
+    }
+  };
+
+  // 刪除顧客
+  const handleDelete = async (id: number) => {
+    if (!confirm('確定要刪除此顧客嗎?')) return;
+
+    setError(null);
     
     try {
       const res = await fetch('/api/customer', {
-        method: 'POST',
+        method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: form.name.trim(), gender: form.gender }),
+        body: JSON.stringify({ id }),
       });
       
       if (!res.ok) {
@@ -70,17 +157,12 @@ const Customer = () => {
         throw new Error(j?.error ?? j?.message ?? `HTTP ${res.status}`);
       }
       
-      const json = await res.json();
-      // 修復:處理不同的回傳格式
-      const newRow: CustomerRow = json.data || json;
+      // 從列表中移除
+      setList(prev => prev.filter(item => item.id !== id));
       
-      // prepend to list
-      setList(prev => [newRow, ...prev]);
-      setForm({ name: '', gender: '男' });
-      closeDialog();
     } catch (err: unknown) {
-      console.error('insert error', err);
-      setError(err instanceof Error ? err.message : '新增失敗');
+      console.error('delete error', err);
+      setError(err instanceof Error ? err.message : '刪除失敗');
     }
   };
 
@@ -108,8 +190,41 @@ const Customer = () => {
         <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
           {list.map((c) => (
             <li key={c.id} style={commonItem}>
-              <span>{c.name}</span>
-              <span style={commonPrice}>{c.gender}</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <div>
+                  <div style={{ fontWeight: 600 }}>{c.name}</div>
+                  <div style={{ color: '#666', fontSize: 13 }}>{c.gender ?? '—'}</div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <button
+                    onClick={() => openEditFor(c)}
+                    style={{
+                      padding: '6px 10px',
+                      borderRadius: 6,
+                      border: '1px solid #ccc',
+                      background: 'white',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    編輯
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(c.id)}
+                    style={{
+                      padding: '6px 10px',
+                      borderRadius: 6,
+                      border: '1px solid #e0b4b4',
+                      background: '#ffdede',
+                      color: '#a80000',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    刪除
+                  </button>
+                </div>
+              </div>
             </li>
           ))}
           {list.length === 0 && (
@@ -141,10 +256,10 @@ const Customer = () => {
         </Link>
       </div>
 
-      {/* 浮動 + 按鈕 */}
+      {/* Floating + button */}
       <button
         aria-label="新增顧客"
-        onClick={openDialog}
+        onClick={openAdd}
         style={{
           position: 'fixed',
           right: 24,
@@ -190,7 +305,7 @@ const Customer = () => {
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
-            <span>新增顧客</span>
+            <span>{isEditing ? '編輯顧客' : '新增顧客'}</span>
             <button
               type="button"
               onClick={closeDialog}
@@ -289,7 +404,7 @@ const Customer = () => {
                 fontSize: 14
               }}
             >
-              新增
+              {isEditing ? '更新' : '新增'}
             </button>
           </div>
         </form>
