@@ -1,4 +1,5 @@
 import { ThemeProvider } from "@/component/theme-provider"
+import { AccountProvider } from "@/context/AccountContext"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 
@@ -26,7 +27,9 @@ export default function RootLayout({
     <html lang="zh-TW">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider>
-          {children}
+          <AccountProvider>
+            {children}
+          </AccountProvider>
         </ThemeProvider>
       </body>
     </html>

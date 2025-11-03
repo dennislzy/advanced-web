@@ -21,11 +21,14 @@ import {
 import MenuIcon from "@mui/icons-material/Menu"
 import CloseIcon from "@mui/icons-material/Close"
 import PetsIcon from "@mui/icons-material/Pets"
+import AccountCircleIcon from "@mui/icons-material/AccountCircle"
+import { useAccount } from "@/context/AccountContext"
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
+  const { account } = useAccount()
 
   const navItems = [
     { name: "寵物詳細資訊", href: "/pet" },
@@ -126,20 +129,28 @@ export function Header() {
                     {item.name}
                   </Button>
                 ))}
-                <Button sx={{
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    px: 2,
+                    py: 1,
+                    borderRadius: 1,
+                    backgroundColor: "action.hover",
+                  }}
+                >
+                  <AccountCircleIcon sx={{ color: "primary.main", fontSize: 20 }} />
+                  <Typography
+                    sx={{
                       color: "text.primary",
                       fontWeight: 500,
                       fontSize: "0.875rem",
-                      px: 2,
-                      py: 1,
-                      borderRadius: 1,
-                      textTransform: "none",
-                      "&:hover": {
-                        backgroundColor: "action.hover",
-                      },
-                    }}>
-                  歡迎
-                </Button>
+                    }}
+                  >
+                    {account}
+                  </Typography>
+                </Box>
               </Box>
             )}
 
@@ -171,6 +182,32 @@ export function Header() {
         }}
       >
         <Box sx={{ pt: 2 }}>
+          {/* 帳號資訊 */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              px: 3,
+              py: 2,
+              mb: 1,
+              backgroundColor: "action.hover",
+              borderBottom: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <AccountCircleIcon sx={{ color: "primary.main", fontSize: 28 }} />
+            <Typography
+              sx={{
+                color: "text.primary",
+                fontWeight: 500,
+                fontSize: "0.875rem",
+              }}
+            >
+              {account}
+            </Typography>
+          </Box>
+
           <List>
             {navItems.map((item) => (
               <ListItem key={item.name} disablePadding>
@@ -196,7 +233,6 @@ export function Header() {
                 </ListItemButton>
               </ListItem>
             ))}
-            hi
           </List>
         </Box>
       </Drawer>
