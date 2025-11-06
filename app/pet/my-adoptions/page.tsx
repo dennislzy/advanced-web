@@ -30,7 +30,7 @@ export default function MyAdoptionsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null)
+  const [selectedRecordId, setSelectedRecordId] = useState<number | null>(null)
   const [deleting, setDeleting] = useState(false)
 
   // TODO: 替換成實際的用戶帳號（需要實現用戶認證系統）
@@ -64,7 +64,7 @@ export default function MyAdoptionsPage() {
     fetchAdoptions()
   }, [user_account])
 
-  const handleDeleteClick = (recordId: string, event: React.MouseEvent) => {
+  const handleDeleteClick = (recordId: number, event: React.MouseEvent) => {
     event.stopPropagation() // 防止觸發卡片的點擊事件
     setSelectedRecordId(recordId)
     setDeleteDialogOpen(true)

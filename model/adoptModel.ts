@@ -6,7 +6,7 @@ export interface AdoptDTO{
     user_account: string;
 }
 export interface AdoptRecord{
-    record_id: string;
-    pet:Pet
-    users:Users
+    record_id: number;
+    pet:Pet[]
+    users:Users[]
 }

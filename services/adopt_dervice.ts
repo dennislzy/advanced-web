@@ -27,7 +27,7 @@ export class AdoptService extends BaseService {
         const supabase = await this.createClient();
         const { data: applications, error } = await supabase
             .from('adopt_record')
-            .select('record_id, user_account, pet(*)')
+            .select('record_id, user_account, pet(*),users(*)')
             .eq('user_account', user_account);
 
         if (error) {
