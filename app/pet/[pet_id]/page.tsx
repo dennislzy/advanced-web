@@ -253,12 +253,16 @@ export default function PetDetailPage({ params }: { params: Promise<{ pet_id: st
       </Container>
       <PetConfirmDialog
         pet={{
-          id: pet.pet_id,
-          petName: pet.pet_name,
-          petImage: pet.pet_image || '/placeholder-pet.png',
+          pet_id: pet.pet_id,
+          pet_name: pet.pet_name,
+          pet_image : pet.pet_image || '/placeholder-pet.png',
           gender: pet.gender,
           variety: pet.variety,
-          shelterName: pet.shelter_name
+          shelter_name: pet.shelter_name,
+          created_at: pet.created_at,
+          adopt_status: pet.adopt_status,
+          introduction: pet.introduction,
+          updated_at: pet.updated_at,
         }}
         open={openDialog}
         onConfirm={handleConfirmAdopt}
