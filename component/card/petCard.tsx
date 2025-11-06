@@ -45,7 +45,7 @@ export default function PetCard({
       <CardMedia
         component="img"
         height="240"
-        image={pet.pet_image}
+        image={pet.pet_image || '/placeholder-pet.png'}
         alt={pet.pet_name}
         sx={{ objectFit: "cover" }}
       />
