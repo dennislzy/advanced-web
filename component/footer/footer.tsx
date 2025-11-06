@@ -42,7 +42,7 @@ export function Footer() {
       <Container maxWidth="lg">
         <Grid container spacing={4}>
           {/* Logo 和描述 */}
-          <Grid item xs={12} md={6} lg={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3 }} >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
               <Box
                 sx={{
@@ -92,7 +92,7 @@ export function Footer() {
 
           {/* 連結欄位 */}
           {Object.entries(footerLinks).map(([category, links]) => (
-            <Grid item key={category} xs={12} sm={4} md={6} lg={3}>
+            <Grid key={category} size={{ xs: 12, sm: 6, md: 6, lg: 3 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
                 {category}
               </Typography>

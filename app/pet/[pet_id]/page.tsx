@@ -144,7 +144,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ pet_id: st
 
         <Paper elevation={3} sx={{ borderRadius: 3, overflow: "hidden" }}>
           <Grid container>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>  
               <Box
                 component="img"
                 src={pet.pet_image || '/placeholder-pet.png'}
@@ -157,7 +157,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ pet_id: st
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ p: 4 }}>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
                   <Typography variant="h3" component="h1" sx={{ fontWeight: 700 }}>

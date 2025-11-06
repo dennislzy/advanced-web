@@ -154,7 +154,7 @@ const PetInfoPage = () => {
           </Typography>
           <Grid container spacing={4}>
             {adoptionProcess.map((process) => (
-              <Grid item xs={12} sm={6} md={3} key={process.step}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={process.step}>
                 <Card
                   sx={{
                     height: "100%",

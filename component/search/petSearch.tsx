@@ -9,7 +9,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search"
 import ClearIcon from "@mui/icons-material/Clear"
 import { useState } from "react"
-import { Pet } from "../card/petCard"
+import { Pet } from "@/model/petModel"
 
 interface SearchBarProps {
   placeholderText: string

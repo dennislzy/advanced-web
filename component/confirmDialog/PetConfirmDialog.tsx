@@ -1,6 +1,6 @@
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Typography } from "@mui/material"
 import FavoriteIcon from "@mui/icons-material/Favorite"
-import { Pet } from "../card/petCard"
+import { Pet } from "@/model/petModel"
 
 interface PetConfirmDialogProps {
   pet: Pet
@@ -24,7 +24,7 @@ const PetConfirmDialog = ({ pet, open, onConfirm, onCancel }: PetConfirmDialogPr
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="adopt-dialog-description" sx={{ fontSize: "1.1rem", color: "text.primary" }}>
-          您確定要領養 <strong>{pet.petName}</strong> 嗎？
+          您確定要領養 <strong>{pet.pet_name}</strong> 嗎？
         </DialogContentText>
         <Box sx={{ mt: 3, p: 2, bgcolor: "info.light", borderRadius: 2 }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1, color: "black" }}>
