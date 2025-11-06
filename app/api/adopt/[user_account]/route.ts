@@ -26,27 +26,3 @@ export async function GET(
         },
     });
 }
-export async function DELETE(
-    request: Request,
-    { params }: { params: { record_id: string } }
-) {
-    const { record_id } = params;
-
-    if (!record_id) {
-        return new Response(JSON.stringify({ error: 'record_id is required' }), {
-            status: 400,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-    }
-
-    const recordIdNum = parseInt(record_id, 10);
-
-    const adopt_service = new AdoptService();
-    await adopt_service.deleteAdoptApplication(recordIdNum);
-
-    return new Response(null, {
-        status: 204,
-    });
-}
