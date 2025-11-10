@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { commonContainer, commonItem, commonPrice, commonTitle } from "../style/commonStyle";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Box } from "@mui/material";
+import { AuthRoute } from "../authRoute";
 
 interface Product {
     id: number;
@@ -164,6 +165,7 @@ const Product = () => {
     };
 
     return (
+        <AuthRoute>
         <div style={commonContainer}>
             <h1 style={commonTitle}>Product Page</h1>
 
@@ -339,6 +341,7 @@ const Product = () => {
                 </DialogActions>
             </Dialog>
         </div>
+        </AuthRoute>
     )
 }
 export default Product
