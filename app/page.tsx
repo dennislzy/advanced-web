@@ -10,7 +10,16 @@ const metadata = [
     id: 2,
     title: "顧客列表",
     link: "/Customers"
-  }
+  },
+  { 
+    id: 3, 
+    title: "登入", 
+    link: "/login" 
+  },
+  { id: 4, 
+    title: "註冊", 
+    link: "/register" 
+  },
 ];
 
 export default function Home() {
