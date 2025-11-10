@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase"
+import { supabaseAdmin } from "@/lib/supabase"
 import { NextRequest, NextResponse } from "next/server"
 
 
@@ -17,7 +17,7 @@ export async function PUT(
       )
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('products')
       .update({ name, price })
       .eq('id', id)
@@ -55,7 +55,7 @@ export async function DELETE(
       )
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('products')
       .delete()
       .eq('id', id)

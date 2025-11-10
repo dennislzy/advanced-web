@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('products')
       .select('*')
 
@@ -28,7 +28,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const { name, price } = await request.json()
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('products')
       .insert([{ name, price }])
       .select()

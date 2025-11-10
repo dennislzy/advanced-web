@@ -1,16 +1,16 @@
+import { supabaseAdmin } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
 
 // ✅ 取得所有顧客
 export async function GET() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('customers')
       .select('*')
       .order('id', { ascending: false })
 
     if (error) {
-      console.error('Supabase error:', error)
+      console.error('supabaseAdmin error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     if (!name || !gender)
       return NextResponse.json({ error: '缺少必要欄位 name 或 gender' }, { status: 400 })
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('customers')
       .insert([{ name, gender }])
       .select()
@@ -63,7 +63,7 @@ export async function PUT(req: Request) {
     if (name) updateData.name = name
     if (gender) updateData.gender = gender
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('customers')
       .update(updateData)
       .eq('id', id)
@@ -90,7 +90,7 @@ export async function DELETE(req: Request) {
     if (!id)
       return NextResponse.json({ error: '缺少 id' }, { status: 400 })
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('customers')
       .delete()
       .eq('id', id)
