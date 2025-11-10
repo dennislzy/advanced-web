@@ -15,12 +15,15 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
+import { useAuth } from "../hook/useAuth";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+
 export default function RegisterPage() {
+    const { signUp } = useAuth();
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -111,6 +114,7 @@ export default function RegisterPage() {
     } finally {
       setLoading(false);
     }
+    
   };
 
   return (
