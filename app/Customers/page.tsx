@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState, FormEvent } from 'react';
 import { commonContainer, commonItem, commonTitle } from '../style/commonStyle';
+import { AuthRoute } from '../authRoute';
 
 type CustomerRow = {
   id: number;
@@ -167,6 +168,7 @@ const Customer = () => {
   };
 
   return (
+  <AuthRoute>
     <div style={commonContainer}>
       <h1 style={commonTitle}>Customer Page</h1>
 
@@ -409,7 +411,9 @@ const Customer = () => {
           </div>
         </form>
       </dialog>
+      
     </div>
+    </AuthRoute>
   );
 };
 
