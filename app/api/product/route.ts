@@ -1,11 +1,25 @@
+// app/api/product/route.ts
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { createSupabaseServerClient } from '@/lib/supabase'
 
 export async function GET() {
   try {
-    const { data, error } = await supabaseAdmin
+    const supabase = createSupabaseServerClient()
+    
+    // ✅ 檢查用戶是否已登入
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '未授權：請先登入' },
+        { status: 401 }
+      )
+    }
+
+    const { data, error } = await supabase
       .from('products')
       .select('*')
+      .order('id', { ascending: false })
 
     if (error) {
       console.error('Supabase error:', error)
@@ -27,10 +41,34 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const supabase = createSupabaseServerClient()
+    
+    // ✅ 檢查用戶是否已登入
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '未授權：請先登入' },
+        { status: 401 }
+      )
+    }
+
     const { name, price } = await request.json()
-    const { data, error } = await supabaseAdmin
+
+    if (!name || !price) {
+      return NextResponse.json(
+        { error: '缺少必要欄位：name 和 price' },
+        { status: 400 }
+      )
+    }
+
+    const { data, error } = await supabase
       .from('products')
-      .insert([{ name, price }])
+      .insert([{ 
+        name, 
+        price,
+        user_id: user.id 
+      }])
       .select()
 
     if (error) {

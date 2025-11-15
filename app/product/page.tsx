@@ -20,9 +20,10 @@ const Product = () => {
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [openEditDialog, setOpenEditDialog] = useState(false);
 
+    // ✅ 修正：加上空依賴陣列，只執行一次
     useEffect(() => {
         fetchProducts();
-    }, []);
+    }, []); // 只在組件掛載時執行一次
 
     const fetchProducts = async () => {
         try {
@@ -39,7 +40,6 @@ const Product = () => {
     };
 
     const createProduct = async (name: string, price: number) => {
-        // 輸入驗證
         if (!name.trim()) {
             alert('請輸入產品名稱');
             return;
@@ -58,9 +58,17 @@ const Product = () => {
                 body: JSON.stringify({ name, price }),
             });
             const result = await response.json();
+            
+            if (!response.ok) {
+                alert(`新增產品失敗：${result.error || '未知錯誤'}`);
+                return;
+            }
+            
             if (result.data) {
                 setProducts((prevProducts) => [...prevProducts, result.data]);
-                handleCloseDialog(); // 成功後關閉對話框並清空表單
+                // 清空輸入框
+                setNewProductName("");
+                setNewProductPrice("");
             }
         } catch (error) {
             console.error('Error creating product:', error);
@@ -165,183 +173,186 @@ const Product = () => {
     };
 
     return (
+        // ✅ 啟用認證保護
         <AuthRoute>
-        <div style={commonContainer}>
-            <h1 style={commonTitle}>Product Page</h1>
+            <div style={commonContainer}>
+                <h1 style={commonTitle}>Product Page</h1>
 
-            <div style={{ marginBottom: "20px", padding: "20px", border: "1px solid #ddd", borderRadius: "8px" }}>
-                <h2 style={{ marginBottom: "15px", fontSize: "18px" }}>新增產品</h2>
-                <div style={{ display: "flex", gap: "10px", marginBottom: "10px", flexWrap: "wrap", alignItems: "center" }}>
-                    <input
-                        type="text"
-                        placeholder="產品名稱"
-                        value={newProductName}
-                        onChange={(e) => setNewProductName(e.target.value)}
-                        style={{
-                            padding: "8px 12px",
-                            border: "1px solid #ccc",
-                            borderRadius: "4px",
-                            minWidth: "200px",
-                            flex: 1
-                        }}
-                    />
-                    <input
-                        type="number"
-                        placeholder="價格"
-                        value={newProductPrice}
-                        onChange={(e) => setNewProductPrice(e.target.value)}
-                        style={{
-                            padding: "8px 12px",
-                            border: "1px solid #ccc",
-                            borderRadius: "4px",
-                            width: "150px",
-                            flexShrink: 0
-                        }}
-                    />
-                    <button
-                        onClick={() => createProduct(newProductName, parseFloat(newProductPrice))}
-                        style={{
-                            padding: "8px 20px",
-                            backgroundColor: "#007bff",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            whiteSpace: "nowrap",
-                            flexShrink: 0
-                        }}
-                    >
-                        新增
-                    </button>
-                </div>
-            </div>
-
-            {loading ? (
-                <p>載入中...</p>
-            ) : (
-                <ul>
-                    {products.map(product => (
-                        <li key={product.id} style={{
-                            ...commonItem,
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                        }}>
-                            <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flex: 1 }}>
-                                <span>{product.name}</span>
-                                <span style={commonPrice}>${product.price}</span>
-                            </div>
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <button
-                                    onClick={() => handleOpenEditDialog(product)}
-                                    style={{
-                                        padding: '6px 12px',
-                                        backgroundColor: '#28a745',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        fontSize: '14px'
-                                    }}
-                                >
-                                    編輯
-                                </button>
-                                <button
-                                    onClick={() => deleteProduct(product.id)}
-                                    style={{
-                                        padding: '6px 12px',
-                                        backgroundColor: '#dc3545',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        fontSize: '14px'
-                                    }}
-                                >
-                                    刪除
-                                </button>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            )}
-            <a href="/" className="">首頁</a>
-
-            <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-                <DialogTitle>新增產品</DialogTitle>
-                <DialogContent>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
-                        <TextField
-                            label="產品名稱"
-                            variant="outlined"
-                            fullWidth
+                <div style={{ marginBottom: "20px", padding: "20px", border: "1px solid #ddd", borderRadius: "8px" }}>
+                    <h2 style={{ marginBottom: "15px", fontSize: "18px" }}>新增產品</h2>
+                    <div style={{ display: "flex", gap: "10px", marginBottom: "10px", flexWrap: "wrap", alignItems: "center" }}>
+                        <input
+                            type="text"
+                            placeholder="產品名稱"
                             value={newProductName}
                             onChange={(e) => setNewProductName(e.target.value)}
-                            autoFocus
+                            style={{
+                                padding: "8px 12px",
+                                border: "1px solid #ccc",
+                                borderRadius: "4px",
+                                minWidth: "200px",
+                                flex: 1
+                            }}
                         />
-                        <TextField
-                            label="價格"
-                            variant="outlined"
+                        <input
                             type="number"
-                            fullWidth
+                            placeholder="價格"
                             value={newProductPrice}
                             onChange={(e) => setNewProductPrice(e.target.value)}
-                            InputProps={{
-                                startAdornment: <span style={{ marginRight: "8px" }}>$</span>
+                            style={{
+                                padding: "8px 12px",
+                                border: "1px solid #ccc",
+                                borderRadius: "4px",
+                                width: "150px",
+                                flexShrink: 0
                             }}
                         />
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDialog} color="inherit">
-                        取消
-                    </Button>
-                    <Button onClick={handleAddProduct} variant="contained" color="primary">
-                        確認新增
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                        <button
+                            onClick={() => createProduct(newProductName, parseFloat(newProductPrice))}
+                            style={{
+                                padding: "8px 20px",
+                                backgroundColor: "#007bff",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "4px",
+                                cursor: "pointer",
+                                whiteSpace: "nowrap",
+                                flexShrink: 0
+                            }}
+                        >
+                            新增
+                        </button>
+                    </div>
+                </div>
 
-            <Dialog open={openEditDialog} onClose={handleCloseEditDialog} maxWidth="sm" fullWidth>
-                <DialogTitle>編輯產品</DialogTitle>
-                <DialogContent>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
-                        <TextField
-                            label="產品名稱"
-                            variant="outlined"
-                            fullWidth
-                            value={editingProduct?.name || ''}
-                            onChange={(e) => setEditingProduct(prev =>
-                                prev ? { ...prev, name: e.target.value } : null
-                            )}
-                            autoFocus
-                        />
-                        <TextField
-                            label="價格"
-                            variant="outlined"
-                            type="number"
-                            fullWidth
-                            value={editingProduct?.price || ''}
-                            onChange={(e) => setEditingProduct(prev =>
-                                prev ? { ...prev, price: parseFloat(e.target.value) } : null
-                            )}
-                            InputProps={{
-                                startAdornment: <span style={{ marginRight: "8px" }}>$</span>
-                            }}
-                        />
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseEditDialog} color="inherit">
-                        取消
-                    </Button>
-                    <Button onClick={handleUpdateProduct} variant="contained" color="primary">
-                        確認更新
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </div>
+                {loading ? (
+                    <p>載入中...</p>
+                ) : (
+                    <ul>
+                        {products.map(product => (
+                            <li key={product.id} style={{
+                                ...commonItem,
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                            }}>
+                                <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flex: 1 }}>
+                                    <span>{product.name}</span>
+                                    <span style={commonPrice}>${product.price}</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <button
+                                        onClick={() => handleOpenEditDialog(product)}
+                                        style={{
+                                            padding: '6px 12px',
+                                            backgroundColor: '#28a745',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer',
+                                            fontSize: '14px'
+                                        }}
+                                    >
+                                        編輯
+                                    </button>
+                                    <button
+                                        onClick={() => deleteProduct(product.id)}
+                                        style={{
+                                            padding: '6px 12px',
+                                            backgroundColor: '#dc3545',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer',
+                                            fontSize: '14px'
+                                        }}
+                                    >
+                                        刪除
+                                    </button>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+                <a href="/" className="">首頁</a>
+
+                {/* 對話框保持不變 */}
+                <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+                    <DialogTitle>新增產品</DialogTitle>
+                    <DialogContent>
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
+                            <TextField
+                                label="產品名稱"
+                                variant="outlined"
+                                fullWidth
+                                value={newProductName}
+                                onChange={(e) => setNewProductName(e.target.value)}
+                                autoFocus
+                            />
+                            <TextField
+                                label="價格"
+                                variant="outlined"
+                                type="number"
+                                fullWidth
+                                value={newProductPrice}
+                                onChange={(e) => setNewProductPrice(e.target.value)}
+                                InputProps={{
+                                    startAdornment: <span style={{ marginRight: "8px" }}>$</span>
+                                }}
+                            />
+                        </Box>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseDialog} color="inherit">
+                            取消
+                        </Button>
+                        <Button onClick={handleAddProduct} variant="contained" color="primary">
+                            確認新增
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+                <Dialog open={openEditDialog} onClose={handleCloseEditDialog} maxWidth="sm" fullWidth>
+                    <DialogTitle>編輯產品</DialogTitle>
+                    <DialogContent>
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
+                            <TextField
+                                label="產品名稱"
+                                variant="outlined"
+                                fullWidth
+                                value={editingProduct?.name || ''}
+                                onChange={(e) => setEditingProduct(prev =>
+                                    prev ? { ...prev, name: e.target.value } : null
+                                )}
+                                autoFocus
+                            />
+                            <TextField
+                                label="價格"
+                                variant="outlined"
+                                type="number"
+                                fullWidth
+                                value={editingProduct?.price || ''}
+                                onChange={(e) => setEditingProduct(prev =>
+                                    prev ? { ...prev, price: parseFloat(e.target.value) } : null
+                                )}
+                                InputProps={{
+                                    startAdornment: <span style={{ marginRight: "8px" }}>$</span>
+                                }}
+                            />
+                        </Box>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseEditDialog} color="inherit">
+                            取消
+                        </Button>
+                        <Button onClick={handleUpdateProduct} variant="contained" color="primary">
+                            確認更新
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            </div>
         </AuthRoute>
     )
 }
+
 export default Product

@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/lib/supabase"
+import { supabaseAdmin, createSupabaseServerClient } from "@/lib/supabase"
 import { NextRequest, NextResponse } from "next/server"
 
 
@@ -7,6 +7,18 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const supabase = createSupabaseServerClient()
+
+    // ✅ 檢查用戶是否已登入
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '未授權：請先登入' },
+        { status: 401 }
+      )
+    }
+
     const id = params.id  // 從動態路由參數取得 id
     const { name, price } = await request.json()
 
@@ -46,6 +58,18 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const supabase = createSupabaseServerClient()
+
+    // ✅ 檢查用戶是否已登入
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '未授權：請先登入' },
+        { status: 401 }
+      )
+    }
+
     const id = params.id  // 從動態路由參數取得 id
 
     if (!id) {

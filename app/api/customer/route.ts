@@ -1,9 +1,21 @@
-import { supabaseAdmin } from '@/lib/supabase'
+import { supabaseAdmin, createSupabaseServerClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 
 // ✅ 取得所有顧客
 export async function GET() {
   try {
+    const supabase = createSupabaseServerClient()
+
+    // ✅ 檢查用戶是否已登入
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '未授權：請先登入' },
+        { status: 401 }
+      )
+    }
+
     const { data, error } = await supabaseAdmin
       .from('customers')
       .select('*')
@@ -24,6 +36,18 @@ export async function GET() {
 // ✅ 新增顧客 (Create)
 export async function POST(req: Request) {
   try {
+    const supabase = createSupabaseServerClient()
+
+    // ✅ 檢查用戶是否已登入
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '未授權：請先登入' },
+        { status: 401 }
+      )
+    }
+
     const { name, gender } = await req.json()
 
     if (!name || !gender)
@@ -50,6 +74,18 @@ export async function POST(req: Request) {
 // ✅ 更新顧客 (Update)
 export async function PUT(req: Request) {
   try {
+    const supabase = createSupabaseServerClient()
+
+    // ✅ 檢查用戶是否已登入
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '未授權：請先登入' },
+        { status: 401 }
+      )
+    }
+
     const { id, name, gender } = await req.json()
 
     if (!id)
@@ -85,6 +121,18 @@ export async function PUT(req: Request) {
 // ✅ 刪除顧客 (Delete)
 export async function DELETE(req: Request) {
   try {
+    const supabase = createSupabaseServerClient()
+
+    // ✅ 檢查用戶是否已登入
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '未授權：請先登入' },
+        { status: 401 }
+      )
+    }
+
     const { id } = await req.json()
 
     if (!id)
