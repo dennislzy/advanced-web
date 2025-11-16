@@ -8,7 +8,7 @@ export async function GET(
     { params }: { params: Promise<{ user_account: string }> }  // 改成 Promise
 ) {
     try {
-        const supabase = createSupabaseServerClient()
+        const supabase = await createSupabaseServerClient()
 
         // ✅ 檢查用戶是否已登入
         const { data: { user }, error: authError } = await supabase.auth.getUser()

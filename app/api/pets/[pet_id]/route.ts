@@ -8,7 +8,7 @@ export async function GET(
     { params }: { params: Promise<{ pet_id: string }> }
 ) {
     try {
-        const supabase = createSupabaseServerClient()
+        const supabase = await createSupabaseServerClient()
 
         // ✅ 檢查用戶是否已登入
         const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -60,7 +60,7 @@ export async function PATCH(
     { params }: { params: Promise<{ pet_id: string }> }
 ) {
     try {
-        const supabase = createSupabaseServerClient()
+        const supabase = await createSupabaseServerClient()
 
         // ✅ 檢查用戶是否已登入
         const { data: { user }, error: authError } = await supabase.auth.getUser()

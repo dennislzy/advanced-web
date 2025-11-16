@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = await createSupabaseServerClient()
     
     // ✅ 檢查用戶是否已登入
     const { data: { user }, error: authError } = await supabase.auth.getUser()

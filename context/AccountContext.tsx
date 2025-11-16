@@ -22,16 +22,39 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     // ✅ 獲取當前用戶
     const getUser = async () => {
       try {
+        // 先檢查是否有 session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+        if (sessionError) {
+          console.warn('獲取 session 錯誤:', sessionError.message)
+          setUser(null)
+          setIsLoading(false)
+          return
+        }
+
+        // 如果沒有 session，直接設置為 null（不是錯誤狀態）
+        if (!session) {
+          setUser(null)
+          setIsLoading(false)
+          return
+        }
+
+        // 有 session 才獲取用戶資訊
         const { data: { user: currentUser }, error } = await supabase.auth.getUser()
 
         if (error) {
-          console.error('獲取用戶錯誤:', error)
+          console.warn('獲取用戶錯誤:', error.message)
           setUser(null)
         } else {
           setUser(currentUser)
         }
       } catch (error) {
-        console.error('未預期的錯誤:', error)
+        // 靜默處理 AuthSessionMissingError
+        if (error instanceof Error && error.message.includes('Auth session missing')) {
+          console.log('無認證 session（用戶未登錄）')
+        } else {
+          console.error('未預期的錯誤:', error)
+        }
         setUser(null)
       } finally {
         setIsLoading(false)
