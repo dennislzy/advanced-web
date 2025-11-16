@@ -1,12 +1,25 @@
 import { PetService } from "@/services/pet_service"
 import { UpdatePetDto } from "@/model/petModel"
-import { NextRequest } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { createSupabaseServerClient } from '@/config/supabase.server'
 
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ pet_id: string }> }
 ) {
     try {
+        const supabase = createSupabaseServerClient()
+
+        // ✅ 檢查用戶是否已登入
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+        if (authError || !user) {
+            return NextResponse.json(
+                { error: '未授權：請先登入' },
+                { status: 401 }
+            )
+        }
+
         const { pet_id } = await params
         const pet_service = new PetService()
         const pet = await pet_service.getPetById(pet_id)
@@ -47,6 +60,18 @@ export async function PATCH(
     { params }: { params: Promise<{ pet_id: string }> }
 ) {
     try {
+        const supabase = createSupabaseServerClient()
+
+        // ✅ 檢查用戶是否已登入
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+        if (authError || !user) {
+            return NextResponse.json(
+                { error: '未授權：請先登入' },
+                { status: 401 }
+            )
+        }
+
         const { pet_id } = await params
         const body: Partial<UpdatePetDto> = await request.json()
 

@@ -2,7 +2,7 @@ import { ThemeProvider } from "@/component/theme-provider"
 import { AccountProvider } from "@/context/AccountContext"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
-
+import { AuthRoute } from "@/authRoute"
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
