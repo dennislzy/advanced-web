@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createSupabaseServerClient()
@@ -19,7 +19,7 @@ export async function PUT(
       )
     }
 
-    const id = params.id  // 從動態路由參數取得 id
+    const { id } = await params  // 從動態路由參數取得 id
     const { name, price } = await request.json()
 
     if (!id) {
@@ -55,7 +55,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createSupabaseServerClient()
@@ -70,7 +70,7 @@ export async function DELETE(
       )
     }
 
-    const id = params.id  // 從動態路由參數取得 id
+    const { id } = await params  // 從動態路由參數取得 id
 
     if (!id) {
       return NextResponse.json(
