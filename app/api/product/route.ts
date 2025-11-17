@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from '@/lib/supabase'
 
 export async function GET() {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = await createSupabaseServerClient()
     
     // ✅ 檢查用戶是否已登入
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -41,7 +41,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = await createSupabaseServerClient()
     
     // ✅ 檢查用戶是否已登入
     const { data: { user }, error: authError } = await supabase.auth.getUser()

@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 // ✅ 取得所有顧客
 export async function GET() {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = await createSupabaseServerClient()
 
     // ✅ 檢查用戶是否已登入
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -36,7 +36,7 @@ export async function GET() {
 // ✅ 新增顧客 (Create)
 export async function POST(req: Request) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = await createSupabaseServerClient()
 
     // ✅ 檢查用戶是否已登入
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
 // ✅ 更新顧客 (Update)
 export async function PUT(req: Request) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = await createSupabaseServerClient()
 
     // ✅ 檢查用戶是否已登入
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -121,7 +121,7 @@ export async function PUT(req: Request) {
 // ✅ 刪除顧客 (Delete)
 export async function DELETE(req: Request) {
   try {
-    const supabase = createSupabaseServerClient()
+    const supabase = await createSupabaseServerClient()
 
     // ✅ 檢查用戶是否已登入
     const { data: { user }, error: authError } = await supabase.auth.getUser()
