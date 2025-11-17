@@ -64,10 +64,9 @@ export async function POST(request: Request) {
 
     const { data, error } = await supabase
       .from('products')
-      .insert([{ 
-        name, 
-        price,
-        user_id: user.id 
+      .insert([{
+        name,
+        price
       }])
       .select()
 

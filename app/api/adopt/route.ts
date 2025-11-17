@@ -29,9 +29,8 @@ export async function POST(request: Request) {
     // ✅ 建立領養申請
     const { data: application, error } = await supabase
       .from('adopt_applications')
-      .insert([{ 
+      .insert([{
         ...data,
-        user_id: user.id,
         status: 'pending' // 預設狀態
       }])
       .select()
