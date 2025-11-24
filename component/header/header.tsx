@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useState, MouseEvent } from "react"
 import {
   AppBar,
   Toolbar,
@@ -17,18 +17,20 @@ import {
   ListItemText,
   useTheme,
   useMediaQuery,
+  Menu,
+  MenuItem,
 } from "@mui/material"
 import MenuIcon from "@mui/icons-material/Menu"
 import CloseIcon from "@mui/icons-material/Close"
 import PetsIcon from "@mui/icons-material/Pets"
 import AccountCircleIcon from "@mui/icons-material/AccountCircle"
-import { useAccount } from "@/context/AccountContext"
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [accountMenuAnchorEl, setAccountMenuAnchorEl] = useState<null | HTMLElement>(null)
+
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
-  const { account } = useAccount()
 
   const navItems = [
     { name: "寵物詳細資訊", href: "/pet" },
@@ -39,6 +41,16 @@ export function Header() {
   const handleDrawerToggle = () => {
     setMobileMenuOpen(!mobileMenuOpen)
   }
+
+  const handleAccountMenuOpen = (event: MouseEvent<HTMLElement>) => {
+    setAccountMenuAnchorEl(event.currentTarget)
+  }
+
+  const handleAccountMenuClose = () => {
+    setAccountMenuAnchorEl(null)
+  }
+
+  const isAccountMenuOpen = Boolean(accountMenuAnchorEl)
 
   return (
     <>
@@ -105,9 +117,9 @@ export function Header() {
               </Box>
             </Link>
 
-            {/* 桌面導航 */}
+            {/* 桌面版導航 + 帳號選單 */}
             {!isMobile && (
-              <Box sx={{ display: "flex", gap: 1, ml: "auto" }}>
+              <Box sx={{ display: "flex", gap: 1, ml: "auto", alignItems: "center" }}>
                 {navItems.map((item) => (
                   <Button
                     key={item.name}
@@ -129,32 +141,62 @@ export function Header() {
                     {item.name}
                   </Button>
                 ))}
-                <Box
+
+                {/* 帳號下拉按鈕 */}
+                <Button
+                  onClick={handleAccountMenuOpen}
+                  startIcon={<AccountCircleIcon sx={{ fontSize: 20 }} />}
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
+                    ml: 1,
+                    color: "text.primary",
+                    fontWeight: 500,
+                    fontSize: "0.875rem",
                     px: 2,
                     py: 1,
                     borderRadius: 1,
+                    textTransform: "none",
                     backgroundColor: "action.hover",
+                    "&:hover": {
+                      backgroundColor: "action.selected",
+                    },
                   }}
                 >
-                  <AccountCircleIcon sx={{ color: "primary.main", fontSize: 20 }} />
-                  <Typography
-                    sx={{
-                      color: "text.primary",
-                      fontWeight: 500,
-                      fontSize: "0.875rem",
-                    }}
+                  會員中心
+                </Button>
+
+                {/* ✅ 下拉選單：登入導到 /L，註冊導到 /signup */}
+                <Menu
+                  anchorEl={accountMenuAnchorEl}
+                  open={isAccountMenuOpen}
+                  onClose={handleAccountMenuClose}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                  }}
+                >
+                  <MenuItem
+                    component={Link}
+                    href="/L"      // ✅ 導向 app/L/page.tsx
+                    onClick={handleAccountMenuClose}
                   >
-                    {account}
-                  </Typography>
-                </Box>
+                    登入
+                  </MenuItem>
+                  <MenuItem
+                    component={Link}
+                    href="/signup" // 之後可以做註冊頁：app/signup/page.tsx
+                    onClick={handleAccountMenuClose}
+                  >
+                    註冊
+                  </MenuItem>
+                </Menu>
               </Box>
             )}
 
-            {/* 移動端菜單按鈕 */}
+            {/* 手機版漢堡選單按鈕 */}
             {isMobile && (
               <IconButton
                 color="inherit"
@@ -170,7 +212,7 @@ export function Header() {
         </Container>
       </AppBar>
 
-      {/* 移動端側邊欄 */}
+      {/* 手機版側邊欄 */}
       <Drawer
         anchor="right"
         open={mobileMenuOpen}
@@ -182,7 +224,6 @@ export function Header() {
         }}
       >
         <Box sx={{ pt: 2 }}>
-          {/* 帳號資訊 */}
           <Box
             sx={{
               display: "flex",
@@ -204,7 +245,7 @@ export function Header() {
                 fontSize: "0.875rem",
               }}
             >
-              {account}
+              會員中心
             </Typography>
           </Box>
 
@@ -233,6 +274,35 @@ export function Header() {
                 </ListItemButton>
               </ListItem>
             ))}
+
+            {/* 手機版：登入 / 註冊 */}
+            <ListItem disablePadding>
+              <ListItemButton
+                component={Link}
+                href="/L"       // ✅ 同樣導到 app/L/page.tsx
+                onClick={handleDrawerToggle}
+                sx={{ py: 1.5, px: 3 }}
+              >
+                <ListItemText
+                  primary="登入"
+                  primaryTypographyProps={{ fontSize: "0.875rem", fontWeight: 500 }}
+                />
+              </ListItemButton>
+            </ListItem>
+
+            <ListItem disablePadding>
+              <ListItemButton
+                component={Link}
+                href="/signup"
+                onClick={handleDrawerToggle}
+                sx={{ py: 1.5, px: 3 }}
+              >
+                <ListItemText
+                  primary="註冊"
+                  primaryTypographyProps={{ fontSize: "0.875rem", fontWeight: 500 }}
+                />
+              </ListItemButton>
+            </ListItem>
           </List>
         </Box>
       </Drawer>
