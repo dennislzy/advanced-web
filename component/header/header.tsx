@@ -40,6 +40,10 @@ export function Header() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const navItems = [
+    {
+    name: "AI寵物諮詢",
+    href: "https://gemini.google.com/gem/1iQFA-1G23_Mg8E7-J8yi72p5uCf0oy6I?usp=sharing", 
+  },
     { name: "寵物詳細資訊", href: "/pet" },
     { name: "領養須知", href: "/pet/petInfo" },
     { name: "我的領養申請", href: "/pet/my-adoptions" },
