@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useState, MouseEvent } from "react"
+import Link from "next/link";
+import { useState, useEffect, MouseEvent } from "react";
 import {
   AppBar,
   Toolbar,
@@ -19,38 +19,77 @@ import {
   useMediaQuery,
   Menu,
   MenuItem,
-} from "@mui/material"
-import MenuIcon from "@mui/icons-material/Menu"
-import CloseIcon from "@mui/icons-material/Close"
-import PetsIcon from "@mui/icons-material/Pets"
-import AccountCircleIcon from "@mui/icons-material/AccountCircle"
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
+import PetsIcon from "@mui/icons-material/Pets";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import type { User } from "@supabase/supabase-js";
+import { supabase } from "@/config/supabase.client";
 
 export function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [accountMenuAnchorEl, setAccountMenuAnchorEl] = useState<null | HTMLElement>(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [accountMenuAnchorEl, setAccountMenuAnchorEl] =
+    useState<null | HTMLElement>(null);
 
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"))
+  // ✅ 追蹤目前登入使用者
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const navItems = [
     { name: "寵物詳細資訊", href: "/pet" },
     { name: "領養須知", href: "/pet/petInfo" },
     { name: "我的領養申請", href: "/pet/my-adoptions" },
-  ]
+  ];
 
   const handleDrawerToggle = () => {
-    setMobileMenuOpen(!mobileMenuOpen)
-  }
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
 
   const handleAccountMenuOpen = (event: MouseEvent<HTMLElement>) => {
-    setAccountMenuAnchorEl(event.currentTarget)
-  }
+    setAccountMenuAnchorEl(event.currentTarget);
+  };
 
   const handleAccountMenuClose = () => {
-    setAccountMenuAnchorEl(null)
-  }
+    setAccountMenuAnchorEl(null);
+  };
 
-  const isAccountMenuOpen = Boolean(accountMenuAnchorEl)
+  const isAccountMenuOpen = Boolean(accountMenuAnchorEl);
+
+  // ✅ 一進來就檢查登入狀態，並且監聽變化
+  useEffect(() => {
+    let isMounted = true;
+
+    const initAuth = async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (!isMounted) return;
+        if (error) {
+          console.error("取得使用者資訊失敗:", error);
+        }
+        setCurrentUser(data?.user ?? null);
+      } finally {
+        if (isMounted) setAuthLoading(false);
+      }
+    };
+
+    initAuth();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
+      setCurrentUser(session?.user ?? null);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <>
@@ -67,7 +106,14 @@ export function Header() {
         <Container maxWidth="lg">
           <Toolbar disableGutters sx={{ minHeight: 64 }}>
             {/* Logo 和標題 */}
-            <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
+            <Link
+              href="/"
+              style={{
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
               <Box
                 sx={{
                   display: "flex",
@@ -90,7 +136,9 @@ export function Header() {
                     justifyContent: "center",
                   }}
                 >
-                  <PetsIcon sx={{ color: "primary.contrastText", fontSize: 24 }} />
+                  <PetsIcon
+                    sx={{ color: "primary.contrastText", fontSize: 24 }}
+                  />
                 </Box>
                 <Box>
                   <Typography
@@ -119,7 +167,14 @@ export function Header() {
 
             {/* 桌面版導航 + 帳號選單 */}
             {!isMobile && (
-              <Box sx={{ display: "flex", gap: 1, ml: "auto", alignItems: "center" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 1,
+                  ml: "auto",
+                  alignItems: "center",
+                }}
+              >
                 {navItems.map((item) => (
                   <Button
                     key={item.name}
@@ -161,10 +216,14 @@ export function Header() {
                     },
                   }}
                 >
-                  會員中心
+                  {authLoading
+                    ? "載入中..."
+                    : currentUser
+                    ? "會員中心（已登入）"
+                    : "會員中心"}
                 </Button>
 
-                {/* ✅ 下拉選單：登入導到 /L，註冊導到 /signup */}
+                {/* ✅ 下拉選單：未登入 => 登入 / 註冊；已登入 => 登出 */}
                 <Menu
                   anchorEl={accountMenuAnchorEl}
                   open={isAccountMenuOpen}
@@ -178,20 +237,34 @@ export function Header() {
                     horizontal: "right",
                   }}
                 >
-                  <MenuItem
-                    component={Link}
-                    href="/L"      // ✅ 導向 app/L/page.tsx
-                    onClick={handleAccountMenuClose}
-                  >
-                    登入
-                  </MenuItem>
-                  <MenuItem
-                    component={Link}
-                    href="/signup" // 之後可以做註冊頁：app/signup/page.tsx
-                    onClick={handleAccountMenuClose}
-                  >
-                    註冊
-                  </MenuItem>
+                  {currentUser ? (
+                    <MenuItem
+                      component={Link}
+                      href="/logout" // ✅ 導向登出頁：app/logout/page.tsx
+                      onClick={handleAccountMenuClose}
+                    >
+                      登出
+                    </MenuItem>
+                  ) : (
+                    [
+                      <MenuItem
+                        key="login"
+                        component={Link}
+                        href="/L" // 登入頁：app/L/page.tsx
+                        onClick={handleAccountMenuClose}
+                      >
+                        登入
+                      </MenuItem>,
+                      <MenuItem
+                        key="signup"
+                        component={Link}
+                        href="/signup" // 註冊頁
+                        onClick={handleAccountMenuClose}
+                      >
+                        註冊
+                      </MenuItem>,
+                    ]
+                  )}
                 </Menu>
               </Box>
             )}
@@ -245,7 +318,11 @@ export function Header() {
                 fontSize: "0.875rem",
               }}
             >
-              會員中心
+              {authLoading
+                ? "會員中心（載入中）"
+                : currentUser
+                ? "會員中心（已登入）"
+                : "會員中心"}
             </Typography>
           </Box>
 
@@ -275,37 +352,66 @@ export function Header() {
               </ListItem>
             ))}
 
-            {/* 手機版：登入 / 註冊 */}
-            <ListItem disablePadding>
-              <ListItemButton
-                component={Link}
-                href="/L"       // ✅ 同樣導到 app/L/page.tsx
-                onClick={handleDrawerToggle}
-                sx={{ py: 1.5, px: 3 }}
-              >
-                <ListItemText
-                  primary="登入"
-                  primaryTypographyProps={{ fontSize: "0.875rem", fontWeight: 500 }}
-                />
-              </ListItemButton>
-            </ListItem>
+            {/* ✅ 手機版：依登入狀態切換登入 / 登出 + 註冊 */}
+            {currentUser ? (
+              <>
+                <ListItem disablePadding>
+                  <ListItemButton
+                    component={Link}
+                    href="/logout"
+                    onClick={handleDrawerToggle}
+                    sx={{ py: 1.5, px: 3 }}
+                  >
+                    <ListItemText
+                      primary="登出"
+                      primaryTypographyProps={{
+                        fontSize: "0.875rem",
+                        fontWeight: 500,
+                      }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              </>
+            ) : (
+              <>
+                <ListItem disablePadding>
+                  <ListItemButton
+                    component={Link}
+                    href="/L"
+                    onClick={handleDrawerToggle}
+                    sx={{ py: 1.5, px: 3 }}
+                  >
+                    <ListItemText
+                      primary="登入"
+                      primaryTypographyProps={{
+                        fontSize: "0.875rem",
+                        fontWeight: 500,
+                      }}
+                    />
+                  </ListItemButton>
+                </ListItem>
 
-            <ListItem disablePadding>
-              <ListItemButton
-                component={Link}
-                href="/signup"
-                onClick={handleDrawerToggle}
-                sx={{ py: 1.5, px: 3 }}
-              >
-                <ListItemText
-                  primary="註冊"
-                  primaryTypographyProps={{ fontSize: "0.875rem", fontWeight: 500 }}
-                />
-              </ListItemButton>
-            </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton
+                    component={Link}
+                    href="/signup"
+                    onClick={handleDrawerToggle}
+                    sx={{ py: 1.5, px: 3 }}
+                  >
+                    <ListItemText
+                      primary="註冊"
+                      primaryTypographyProps={{
+                        fontSize: "0.875rem",
+                        fontWeight: 500,
+                      }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              </>
+            )}
           </List>
         </Box>
       </Drawer>
     </>
-  )
+  );
 }
