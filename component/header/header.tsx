@@ -27,6 +27,12 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/config/supabase.client";
 
+// 導覽項目的型別
+type NavItem = {
+  name: string;
+  href: string;
+};
+
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuAnchorEl, setAccountMenuAnchorEl] =
@@ -38,16 +44,6 @@ export function Header() {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
-  const navItems = [
-    {
-    name: "AI寵物諮詢",
-    href: "https://gemini.google.com/gem/1iQFA-1G23_Mg8E7-J8yi72p5uCf0oy6I?usp=sharing", 
-  },
-    { name: "寵物詳細資訊", href: "/pet" },
-    { name: "領養須知", href: "/pet/petInfo" },
-    { name: "我的領養申請", href: "/pet/my-adoptions" },
-  ];
 
   const handleDrawerToggle = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -94,6 +90,30 @@ export function Header() {
       subscription.unsubscribe();
     };
   }, []);
+
+  // 🔹 基本導覽（所有人看得到）
+  const baseNavItems: NavItem[] = [
+    {
+      name: "AI寵物諮詢",
+      href: "https://gemini.google.com/gem/1iQFA-1G23_Mg8E7-J8yi72p5uCf0oy6I?usp=sharing",
+    },
+    { name: "寵物詳細資訊", href: "/pet" },
+    { name: "領養須知", href: "/pet/petInfo" },
+    { name: "我的領養申請", href: "/pet/my-adoptions" },
+  ];
+
+  // 🔹 有權限上架寵物的帳號（白名單）
+  const uploaderEmails = ["jeff1050032@gmail.com"]; // ⬅️ 這裡換成你要開權限的 email 列表
+  const isPetUploader =
+    !!currentUser && uploaderEmails.includes(currentUser.email ?? "");
+
+  // 🔹 最終要顯示的 navItems：如果有權限，就多一個「上架寵物」
+  const navItems: NavItem[] = [
+    ...baseNavItems,
+    ...(isPetUploader
+      ? [{ name: "上架寵物", href: "/pet/upload" } as NavItem]
+      : []),
+  ];
 
   return (
     <>
@@ -184,6 +204,15 @@ export function Header() {
                     key={item.name}
                     component={Link}
                     href={item.href}
+                    // 外部連結（Gemini）新分頁開啟
+                    target={
+                      item.href.startsWith("http") ? "_blank" : undefined
+                    }
+                    rel={
+                      item.href.startsWith("http")
+                        ? "noopener noreferrer"
+                        : undefined
+                    }
                     sx={{
                       color: "text.primary",
                       fontWeight: 500,
@@ -227,7 +256,7 @@ export function Header() {
                     : "會員中心"}
                 </Button>
 
-                {/* ✅ 下拉選單：未登入 => 登入 / 註冊；已登入 => 登出 */}
+                {/* 下拉選單：未登入 => 登入 / 註冊；已登入 => 登出 */}
                 <Menu
                   anchorEl={accountMenuAnchorEl}
                   open={isAccountMenuOpen}
@@ -244,7 +273,7 @@ export function Header() {
                   {currentUser ? (
                     <MenuItem
                       component={Link}
-                      href="/logout" // ✅ 導向登出頁：app/logout/page.tsx
+                      href="/logout"
                       onClick={handleAccountMenuClose}
                     >
                       登出
@@ -254,7 +283,7 @@ export function Header() {
                       <MenuItem
                         key="login"
                         component={Link}
-                        href="/L" // 登入頁：app/L/page.tsx
+                        href="/L"
                         onClick={handleAccountMenuClose}
                       >
                         登入
@@ -262,7 +291,7 @@ export function Header() {
                       <MenuItem
                         key="signup"
                         component={Link}
-                        href="/signup" // 註冊頁
+                        href="/signup"
                         onClick={handleAccountMenuClose}
                       >
                         註冊
@@ -336,6 +365,14 @@ export function Header() {
                 <ListItemButton
                   component={Link}
                   href={item.href}
+                  target={
+                    item.href.startsWith("http") ? "_blank" : undefined
+                  }
+                  rel={
+                    item.href.startsWith("http")
+                      ? "noopener noreferrer"
+                      : undefined
+                  }
                   onClick={handleDrawerToggle}
                   sx={{
                     py: 1.5,
@@ -356,26 +393,24 @@ export function Header() {
               </ListItem>
             ))}
 
-            {/* ✅ 手機版：依登入狀態切換登入 / 登出 + 註冊 */}
+            {/* 手機版：依登入狀態切換登入 / 登出 + 註冊 */}
             {currentUser ? (
-              <>
-                <ListItem disablePadding>
-                  <ListItemButton
-                    component={Link}
-                    href="/logout"
-                    onClick={handleDrawerToggle}
-                    sx={{ py: 1.5, px: 3 }}
-                  >
-                    <ListItemText
-                      primary="登出"
-                      primaryTypographyProps={{
-                        fontSize: "0.875rem",
-                        fontWeight: 500,
-                      }}
-                    />
-                  </ListItemButton>
-                </ListItem>
-              </>
+              <ListItem disablePadding>
+                <ListItemButton
+                  component={Link}
+                  href="/logout"
+                  onClick={handleDrawerToggle}
+                  sx={{ py: 1.5, px: 3 }}
+                >
+                  <ListItemText
+                    primary="登出"
+                    primaryTypographyProps={{
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
             ) : (
               <>
                 <ListItem disablePadding>
