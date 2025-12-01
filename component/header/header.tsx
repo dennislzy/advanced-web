@@ -103,7 +103,7 @@ export function Header() {
   ];
 
   // 🔹 有權限上架寵物的帳號（白名單）
-  const uploaderEmails = ["jeff1050032@gmail.com"]; // ⬅️ 這裡換成你要開權限的 email 列表
+  const uploaderEmails = ["jeff1050032@gmail.com","a0976278215@gmail.com"];
   const isPetUploader =
     !!currentUser && uploaderEmails.includes(currentUser.email ?? "");
 

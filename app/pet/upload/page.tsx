@@ -14,22 +14,35 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material"
+import { supabase } from "@/config/supabase.client"   // ✅ 一定要有這行
 
 export default function PetUploadPage() {
   const router = useRouter()
 
-  // 這裡欄位名稱，要對應你後端 / Pet 型別的欄位
-  const [name, setName] = useState("")
-  const [category, setCategory] = useState("")      // 例如：狗、貓、兔子…
-  const [age, setAge] = useState("")
-  const [gender, setGender] = useState("")
-  const [location, setLocation] = useState("")      // 例如：台北市
-  const [imageUrl, setImageUrl] = useState("")      // 先用圖片網址，之後要改成上傳檔案也可以
-  const [description, setDescription] = useState("")
+  // 對應資料庫欄位
+  const [petName, setPetName] = useState("")
+  const [gender, setGender] = useState<"公" | "母" | "未知" | "">("")
+  const [variety, setVariety] = useState("")
+  const [shelterName, setShelterName] = useState("")
+  const [introduction, setIntroduction] = useState("")
+
+  // 圖片檔案 & 預覽
+  const [petImageFile, setPetImageFile] = useState<File | null>(null)
+  const [petImagePreview, setPetImagePreview] = useState<string | null>(null)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null
+    setPetImageFile(file)
+    if (file) {
+      setPetImagePreview(URL.createObjectURL(file))
+    } else {
+      setPetImagePreview(null)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,15 +51,41 @@ export default function PetUploadPage() {
     setLoading(true)
 
     try {
-      // 這裡的欄位名稱要跟你 /api/pets 的後端一致
+      if (!petImageFile) {
+        throw new Error("請選擇一張寵物照片")
+      }
+
+      // 1️⃣ 先把圖片上傳到 Supabase Storage
+      const fileExt = petImageFile.name.split(".").pop()
+      const fileName = `${crypto.randomUUID()}.${fileExt}`
+      const filePath = `pets/${fileName}`
+
+      // ⚠️ bucket 名稱請改成你在 Supabase 建的，例如 pet-images
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("pet-images")
+        .upload(filePath, petImageFile)
+
+      if (uploadError || !uploadData) {
+        console.error(uploadError)
+        throw new Error("上傳圖片失敗，請稍後再試")
+      }
+
+      // 取得公開網址（也可以只存 path，看你後端怎麼用）
+      const { data: publicUrlData } = supabase.storage
+        .from("pet-images")
+        .getPublicUrl(uploadData.path)
+
+      const imageUrl = publicUrlData.publicUrl // 這個就是可以直接丟到 <img src> 的網址
+
+      // 2️⃣ 再把寵物資料寫進 /api/pets（寫入 Supabase DB）
       const payload = {
-        name,
-        category,
-        age: Number(age),
+        pet_name: petName,
+        pet_image: imageUrl,      // 或者只存 uploadData.path 也可以
         gender,
-        location,
-        image_url: imageUrl,
-        description,
+        variety,
+        shelter_name: shelterName,
+        introduction,
+        adopt_status: "是",       // 上架時預設可領養
       }
 
       const res = await fetch("/api/pets", {
@@ -63,7 +102,7 @@ export default function PetUploadPage() {
       }
 
       setSuccess("寵物已成功上架！")
-      // 簡單處理：1 秒後回到寵物列表頁
+
       setTimeout(() => {
         router.push("/pet")
       }, 1000)
@@ -129,78 +168,96 @@ export default function PetUploadPage() {
               <TextField
                 label="寵物名字"
                 fullWidth
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={petName}
+                onChange={(e) => setPetName(e.target.value)}
                 required
               />
 
               <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
                 <TextField
-                  label="寵物類別"
+                  label="品種"
                   fullWidth
-                  select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  required
-                >
-                  <MenuItem value="狗">狗</MenuItem>
-                  <MenuItem value="貓">貓</MenuItem>
-                  <MenuItem value="兔子">兔子</MenuItem>
-                  <MenuItem value="其他">其他</MenuItem>
-                </TextField>
-
-                <TextField
-                  label="年齡（歲）"
-                  fullWidth
-                  type="number"
-                  inputProps={{ min: 0 }}
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
+                  value={variety}
+                  onChange={(e) => setVariety(e.target.value)}
+                  placeholder="例如：黃金獵犬、米克斯、英國短毛貓…"
                   required
                 />
-              </Stack>
 
-              <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
                 <TextField
                   label="性別"
                   fullWidth
                   select
                   value={gender}
-                  onChange={(e) => setGender(e.target.value)}
+                  onChange={(e) =>
+                    setGender(e.target.value as "公" | "母" | "未知")
+                  }
                   required
                 >
                   <MenuItem value="公">公</MenuItem>
                   <MenuItem value="母">母</MenuItem>
                   <MenuItem value="未知">未知</MenuItem>
                 </TextField>
-
-                <TextField
-                  label="所在地區"
-                  fullWidth
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="例如：台北市內湖區"
-                  required
-                />
               </Stack>
 
               <TextField
-                label="圖片網址"
+                label="收容所名稱"
                 fullWidth
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://example.com/pet.jpg"
+                value={shelterName}
+                onChange={(e) => setShelterName(e.target.value)}
+                placeholder="例如：台北市動物之家內湖站"
                 required
               />
 
+              {/* 圖片選擇 */}
+              <Box>
+                <Button
+                  component="label"
+                  variant="outlined"
+                  sx={{ mr: 2 }}
+                  disabled={loading}
+                >
+                  選擇寵物照片
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={handleFileChange}
+                  />
+                </Button>
+                <Typography variant="body2" component="span" color="text.secondary">
+                  {petImageFile ? petImageFile.name : "尚未選擇檔案"}
+                </Typography>
+
+                {petImagePreview && (
+                  <Box
+                    sx={{
+                      mt: 2,
+                      width: 200,
+                      height: 200,
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      border: "1px solid",
+                      borderColor: "divider",
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={petImagePreview}
+                      alt="預覽圖片"
+                      sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  </Box>
+                )}
+              </Box>
+
               <TextField
-                label="寵物描述"
+                label="寵物介紹"
                 fullWidth
                 multiline
                 minRows={4}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="性格、習慣、注意事項等……"
+                value={introduction}
+                onChange={(e) => setIntroduction(e.target.value)}
+                placeholder="性格、習慣、是否親人、注意事項等……"
               />
 
               <Box
