@@ -20,19 +20,9 @@ export async function GET(
             )
         }
 
-        const { user_account } = await params;  // 加上 await
-
-        if (!user_account) {
-            return new Response(JSON.stringify({ error: 'user_account is required' }), {
-                status: 400,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-        }
-
+        // ✅ 使用已登入使用者的 ID (UUID) 而不是從參數接收
         const adopt_service = new AdoptService();
-        const adopt_records = await adopt_service.getAdoptApplicationsByUser(user_account)
+        const adopt_records = await adopt_service.getAdoptApplicationsByUser(user.id)
 
         return new Response(JSON.stringify(adopt_records), {
             status: 200,
