@@ -3,125 +3,84 @@ import { UpdatePetDto } from "@/model/petModel"
 import { NextRequest, NextResponse } from "next/server"
 import { createSupabaseServerClient } from '@/config/supabase.server'
 
+/**
+ * 取得單一寵物
+ * - 不需要登入（因為你前台是公開瀏覽）
+ */
 export async function GET(
     request: NextRequest,
-    { params }: { params: Promise<{ pet_id: string }> }
+    { params }: { params: { pet_id: string } }
 ) {
     try {
-        const supabase = await createSupabaseServerClient()
+        const { pet_id } = params
 
-        // ✅ 檢查用戶是否已登入
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-        if (authError || !user) {
-            return NextResponse.json(
-                { error: '未授權：請先登入' },
-                { status: 401 }
-            )
-        }
-
-        const { pet_id } = await params
         const pet_service = new PetService()
         const pet = await pet_service.getPetById(pet_id)
 
         if (!pet) {
-            return new Response(JSON.stringify({ error: 'Pet not found' }), {
-                status: 404,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            })
+            return NextResponse.json({ error: "Pet not found" }, { status: 404 })
         }
 
-        return new Response(JSON.stringify(pet), {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
+        return NextResponse.json(pet, { status: 200 })
     } catch (error) {
-        console.error('Error fetching pet:', error)
-        return new Response(
-            JSON.stringify({
-                error: error instanceof Error ? error.message : 'Internal server error'
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
+        console.error("Error fetching pet:", error)
+        return NextResponse.json(
+            { error: "Internal server error" },
+            { status: 500 }
         )
     }
 }
 
+/**
+ * 更新寵物資訊（需要登入）
+ */
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: Promise<{ pet_id: string }> }
+    { params }: { params: { pet_id: string } }
 ) {
     try {
         const supabase = await createSupabaseServerClient()
 
-        // ✅ 檢查用戶是否已登入
+        // 檢查登入
         const { data: { user }, error: authError } = await supabase.auth.getUser()
 
         if (authError || !user) {
             return NextResponse.json(
-                { error: '未授權：請先登入' },
+                { error: "未授權：請先登入" },
                 { status: 401 }
             )
         }
 
-        const { pet_id } = await params
+        const { pet_id } = params
         const body: Partial<UpdatePetDto> = await request.json()
 
-        // 驗證請求體不為空
         if (!body || Object.keys(body).length === 0) {
-            return new Response(
-                JSON.stringify({ error: 'Request body cannot be empty' }),
-                {
-                    status: 400,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                }
+            return NextResponse.json(
+                { error: "Request body cannot be empty" },
+                { status: 400 }
             )
         }
 
         const pet_service = new PetService()
 
-        // 先檢查寵物是否存在
+        // 檢查寵物是否存在
         const existingPet = await pet_service.getPetById(pet_id)
         if (!existingPet) {
-            return new Response(JSON.stringify({ error: 'Pet not found' }), {
-                status: 404,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            })
+            return NextResponse.json(
+                { error: "Pet not found" },
+                { status: 404 }
+            )
         }
 
-        // 更新寵物資訊
+        // 更新寵物
         const updatedPet = await pet_service.updatePet(pet_id, body)
 
-        return new Response(JSON.stringify(updatedPet), {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
+        return NextResponse.json(updatedPet, { status: 200 })
     } catch (error) {
-        console.error('Error updating pet:', error)
-        return new Response(
-            JSON.stringify({
-                error: error instanceof Error ? error.message : 'Internal server error'
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
+        console.error("Error updating pet:", error)
+        return NextResponse.json(
+            { error: "Internal server error" },
+            { status: 500 }
         )
     }
 }

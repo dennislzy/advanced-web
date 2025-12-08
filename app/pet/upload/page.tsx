@@ -88,7 +88,7 @@ export default function PetUploadPage() {
         adopt_status: "是",       // 上架時預設可領養
       }
 
-      const res = await fetch("/api/pets", {
+      const res = await fetch("/api/pet", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
