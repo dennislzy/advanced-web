@@ -3,7 +3,7 @@
 import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles"
 import CssBaseline from "@mui/material/CssBaseline"
 import { lightTheme, darkTheme } from "@/theme/theme"
-import { useState, createContext, useContext, ReactNode } from "react"
+import { useState, createContext, useContext, ReactNode, useEffect } from "react"
 
 type ThemeMode = "light" | "dark"
 
@@ -21,12 +21,20 @@ export const useThemeMode = () => useContext(ThemeContext)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<ThemeMode>("light")
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const toggleTheme = () => {
     setMode((prev) => (prev === "light" ? "dark" : "light"))
   }
 
   const theme = mode === "light" ? lightTheme : darkTheme
+
+  // ✅ 防止 SSR 先渲染一套，client hydrate 另一套造成 mismatch
+  if (!mounted) return null
 
   return (
     <ThemeContext.Provider value={{ mode, toggleTheme }}>
