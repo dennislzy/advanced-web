@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useState, useEffect } from "react"
+import React, { use, useState, useEffect } from "react"
 import {
   Container,
   Box,
@@ -10,7 +10,6 @@ import {
   Grid,
   Chip,
   Divider,
-  CircularProgress,
 } from "@mui/material"
 import { useRouter } from "next/navigation"
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"
@@ -19,29 +18,63 @@ import FemaleIcon from "@mui/icons-material/Female"
 import PetsIcon from "@mui/icons-material/Pets"
 import HomeIcon from "@mui/icons-material/Home"
 import FavoriteIcon from "@mui/icons-material/Favorite"
+import EditIcon from "@mui/icons-material/Edit"
 import PetConfirmDialog from "@/component/confirmDialog/PetConfirmDialog"
 import { Pet } from "@/model/petModel"
 import Loading from "@/component/loading/Loading"
+import { supabase } from "@/config/supabase.client"
 
-export default function PetDetailPage({ params }: { params: Promise<{ pet_id: string }> }) {
+const ADMIN_EMAIL = "jeff1050032@gmail.com"
+
+export default function PetDetailPage({
+  params,
+}: {
+  params: Promise<{ pet_id: string }>
+}) {
   const { pet_id } = use(params)
   const router = useRouter()
+
   const [pet, setPet] = useState<Pet | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [openDialog, setOpenDialog] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
+  // ✅ 檢查是否為 Jeff（顯示「修改」按鈕用）
+  useEffect(() => {
+    let alive = true
+
+    const checkAdmin = async () => {
+      const { data, error } = await supabase.auth.getUser()
+      if (!alive) return
+      if (error) {
+        setIsAdmin(false)
+        return
+      }
+      const email = (data.user?.email ?? "").toLowerCase()
+      setIsAdmin(email === ADMIN_EMAIL)
+    }
+
+    checkAdmin()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  // ✅ 取得寵物資料（注意：你的 API 是 /api/pets）
   useEffect(() => {
     const fetchPet = async () => {
       try {
         setLoading(true)
+        setError(null)
+
         const response = await fetch(`/api/pets/${pet_id}`)
 
         if (!response.ok) {
           if (response.status === 404) {
-            setError('找不到此寵物資訊')
+            setError("找不到此寵物資訊")
           } else {
-            setError('載入寵物資料時發生錯誤')
+            setError("載入寵物資料時發生錯誤")
           }
           return
         }
@@ -49,8 +82,8 @@ export default function PetDetailPage({ params }: { params: Promise<{ pet_id: st
         const data = await response.json()
         setPet(data)
       } catch (err) {
-        console.error('Error fetching pet:', err)
-        setError('載入寵物資料時發生錯誤')
+        console.error("Error fetching pet:", err)
+        setError("載入寵物資料時發生錯誤")
       } finally {
         setLoading(false)
       }
@@ -58,76 +91,69 @@ export default function PetDetailPage({ params }: { params: Promise<{ pet_id: st
 
     fetchPet()
   }, [pet_id])
-    
-  const handleAdoptClick = () => {
-    setOpenDialog(true)
-  }
+
+  const handleAdoptClick = () => setOpenDialog(true)
 
   const handleConfirmAdopt = async () => {
     if (!pet) return
 
     try {
-      // TODO: 替換成實際的用戶帳號（需要實現用戶認證系統）
+      // TODO: 這裡應該換成真實登入者（supabase user）
       const user_account = "test1@gmail.com"
 
       // 1. 創建領養記錄
-      const adoptResponse = await fetch('/api/adopt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const adoptResponse = await fetch("/api/adopt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pet_id: pet.pet_id,
-          user_account: user_account
-        })
+          user_account,
+        }),
       })
 
       if (!adoptResponse.ok) {
-        throw new Error('領養申請失敗')
+        throw new Error("領養申請失敗")
       }
 
-      // 2. 更新寵物的領養狀態為 '否' (已領養)
+      // 2. 更新寵物領養狀態（你的 API 也是 /api/pets）
       const updateResponse = await fetch(`/api/pets/${pet.pet_id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          adopt_status: '否'
-        })
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adopt_status: "否" }),
       })
 
       if (!updateResponse.ok) {
-        console.error('更新寵物狀態失敗')
+        console.error("更新寵物狀態失敗")
       }
 
       alert(`感謝您願意領養 ${pet.pet_name}！我們會盡快與您聯繫。`)
       setOpenDialog(false)
 
-      // 重新載入寵物資料以顯示最新狀態
+      // 重新載入
       const refreshResponse = await fetch(`/api/pets/${pet_id}`)
       if (refreshResponse.ok) {
         const updatedPet = await refreshResponse.json()
         setPet(updatedPet)
       }
     } catch (error) {
-      console.error('Error adopting pet:', error)
-      alert('領養申請過程中發生錯誤，請稍後再試。')
+      console.error("Error adopting pet:", error)
+      alert("領養申請過程中發生錯誤，請稍後再試。")
     }
   }
 
-  const handleCancelAdopt = () => {
-    setOpenDialog(false)
+  const handleCancelAdopt = () => setOpenDialog(false)
+
+  const handleEdit = () => {
+    // ✅ 路由統一走 /pets（跟你 API 一樣是 pets）
+    router.push(`/pets/${pet_id}/edit`)
   }
 
-  if (loading) {
-    return <Loading/>
-  }
+  if (loading) return <Loading />
 
   if (error || !pet) {
     return (
       <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Typography variant="h4">{error || '找不到此寵物資訊'}</Typography>
+        <Typography variant="h4">{error || "找不到此寵物資訊"}</Typography>
         <Button onClick={() => router.push("/")} sx={{ mt: 2 }}>
           返回首頁
         </Button>
@@ -138,16 +164,20 @@ export default function PetDetailPage({ params }: { params: Promise<{ pet_id: st
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 6 }}>
       <Container maxWidth="lg">
-        <Button startIcon={<ArrowBackIcon />} onClick={() => router.push("/")} sx={{ mb: 4, textTransform: "none" }}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => router.push("/")}
+          sx={{ mb: 4, textTransform: "none" }}
+        >
           返回列表
         </Button>
 
         <Paper elevation={3} sx={{ borderRadius: 3, overflow: "hidden" }}>
           <Grid container>
-            <Grid size={{ xs: 12, md: 6 }}>  
+            <Grid size={{ xs: 12, md: 6 }}>
               <Box
                 component="img"
-                src={pet.pet_image || '/placeholder-pet.png'}
+                src={pet.pet_image || "/placeholder-pet.png"}
                 alt={pet.pet_name}
                 sx={{
                   width: "100%",
@@ -159,16 +189,39 @@ export default function PetDetailPage({ params }: { params: Promise<{ pet_id: st
 
             <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ p: 4 }}>
-                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    mb: 2,
+                    gap: 2,
+                  }}
+                >
                   <Typography variant="h3" component="h1" sx={{ fontWeight: 700 }}>
                     {pet.pet_name}
                   </Typography>
-                  <Chip
-                    icon={<FavoriteIcon />}
-                    label={pet.adopt_status === '是' ? '可領養' : '已領養'}
-                    color="success"
-                    sx={{ fontWeight: 600 }}
-                  />
+
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Chip
+                      icon={<FavoriteIcon />}
+                      label={pet.adopt_status === "是" ? "可領養" : "已領養"}
+                      color="success"
+                      sx={{ fontWeight: 600 }}
+                    />
+
+                    {/* ✅ 只有 Jeff 顯示 */}
+                    {isAdmin && (
+                      <Button
+                        variant="outlined"
+                        startIcon={<EditIcon />}
+                        onClick={handleEdit}
+                        sx={{ textTransform: "none", fontWeight: 600 }}
+                      >
+                        修改
+                      </Button>
+                    )}
+                  </Box>
                 </Box>
 
                 <Divider sx={{ my: 3 }} />
@@ -222,7 +275,11 @@ export default function PetDetailPage({ params }: { params: Promise<{ pet_id: st
                     <Typography variant="h6" gutterBottom fontWeight={600}>
                       寵物介紹
                     </Typography>
-                    <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.8 }}>
+                    <Typography
+                      variant="body1"
+                      color="text.secondary"
+                      sx={{ lineHeight: 1.8 }}
+                    >
                       {pet.introduction}
                     </Typography>
                   </Box>
@@ -234,7 +291,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ pet_id: st
                   fullWidth
                   startIcon={<FavoriteIcon />}
                   onClick={handleAdoptClick}
-                  disabled={pet.adopt_status === '否'}
+                  disabled={pet.adopt_status === "否"}
                   sx={{
                     mt: 4,
                     py: 1.5,
@@ -251,11 +308,12 @@ export default function PetDetailPage({ params }: { params: Promise<{ pet_id: st
           </Grid>
         </Paper>
       </Container>
+
       <PetConfirmDialog
         pet={{
           pet_id: pet.pet_id,
           pet_name: pet.pet_name,
-          pet_image : pet.pet_image || '/placeholder-pet.png',
+          pet_image: pet.pet_image || "/placeholder-pet.png",
           gender: pet.gender,
           variety: pet.variety,
           shelter_name: pet.shelter_name,

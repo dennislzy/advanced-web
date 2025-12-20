@@ -1,13 +1,25 @@
 "use client"
 
-import { Card, CardContent, CardMedia, Typography, Button, Box, CardActions } from "@mui/material"
+import React, { useEffect, useState } from "react"
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Button,
+  Box,
+  CardActions,
+} from "@mui/material"
 import { useRouter } from "next/navigation"
 import PetsIcon from "@mui/icons-material/Pets"
 import MaleIcon from "@mui/icons-material/Male"
 import FemaleIcon from "@mui/icons-material/Female"
 import HomeIcon from "@mui/icons-material/Home"
+import EditIcon from "@mui/icons-material/Edit"
 import { Pet } from "@/model/petModel"
+import { supabase } from "@/config/supabase.client"
 
+const ADMIN_EMAIL = "jeff1050032@gmail.com"
 
 export interface PetCardProps {
   pet: Pet
@@ -20,12 +32,38 @@ export default function PetCard({
   pet,
   statusChip,
   actions,
-  showViewDetailsButton = true
+  showViewDetailsButton = true,
 }: PetCardProps) {
   const router = useRouter()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    let alive = true
+
+    const checkAdmin = async () => {
+      const { data, error } = await supabase.auth.getUser()
+      if (!alive) return
+      if (error) {
+        setIsAdmin(false)
+        return
+      }
+      const email = (data.user?.email ?? "").toLowerCase()
+      setIsAdmin(email === ADMIN_EMAIL)
+    }
+
+    checkAdmin()
+
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const handleViewDetails = () => {
     router.push(`/pet/${pet.pet_id}`)
+  }
+
+  const handleEdit = () => {
+    router.push(`/pet/${pet.pet_id}/edit`)
   }
 
   return (
@@ -45,13 +83,32 @@ export default function PetCard({
       <CardMedia
         component="img"
         height="240"
-        image={pet.pet_image || '/placeholder-pet.png'}
+        image={pet.pet_image || "/placeholder-pet.png"}
         alt={pet.pet_name}
         sx={{ objectFit: "cover" }}
       />
-      <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: 2 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
-          <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 600 }}>
+
+      <CardContent
+        sx={{
+          flexGrow: 1,
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "start",
+          }}
+        >
+          <Typography
+            variant="h5"
+            component="h2"
+            gutterBottom
+            sx={{ fontWeight: 600 }}
+          >
             {pet.pet_name}
           </Typography>
           {statusChip}
@@ -84,6 +141,25 @@ export default function PetCard({
           </Box>
         </Box>
 
+        {/* ✅ 只有指定 Gmail 才顯示「修改」 */}
+        {isAdmin && (
+          <Button
+            variant="outlined"
+            fullWidth
+            startIcon={<EditIcon />}
+            onClick={handleEdit}
+            sx={{
+              mt: 0.5,
+              borderRadius: 2,
+              textTransform: "none",
+              fontSize: "0.95rem",
+              fontWeight: 600,
+            }}
+          >
+            修改寵物資訊
+          </Button>
+        )}
+
         {showViewDetailsButton && (
           <Button
             variant="contained"
@@ -102,11 +178,8 @@ export default function PetCard({
           </Button>
         )}
       </CardContent>
-      {actions && (
-        <CardActions sx={{ p: 2, pt: 0 }}>
-          {actions}
-        </CardActions>
-      )}
+
+      {actions && <CardActions sx={{ p: 2, pt: 0 }}>{actions}</CardActions>}
     </Card>
   )
 }
