@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useState } from "react"
+import Link from "next/link";
+import { useState, useEffect, MouseEvent } from "react";
 import {
   AppBar,
   Toolbar,
@@ -17,28 +17,103 @@ import {
   ListItemText,
   useTheme,
   useMediaQuery,
-} from "@mui/material"
-import MenuIcon from "@mui/icons-material/Menu"
-import CloseIcon from "@mui/icons-material/Close"
-import PetsIcon from "@mui/icons-material/Pets"
-import AccountCircleIcon from "@mui/icons-material/AccountCircle"
-import { useAccount } from "@/context/AccountContext"
+  Menu,
+  MenuItem,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
+import PetsIcon from "@mui/icons-material/Pets";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import type { User } from "@supabase/supabase-js";
+import { supabase } from "@/config/supabase.client";
+
+// 導覽項目的型別
+type NavItem = {
+  name: string;
+  href: string;
+};
 
 export function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"))
-  const { account } = useAccount()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [accountMenuAnchorEl, setAccountMenuAnchorEl] =
+    useState<null | HTMLElement>(null);
 
-  const navItems = [
+  // ✅ 追蹤目前登入使用者
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  const handleDrawerToggle = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const handleAccountMenuOpen = (event: MouseEvent<HTMLElement>) => {
+    setAccountMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleAccountMenuClose = () => {
+    setAccountMenuAnchorEl(null);
+  };
+
+  const isAccountMenuOpen = Boolean(accountMenuAnchorEl);
+
+  // ✅ 一進來就檢查登入狀態，並且監聽變化
+  useEffect(() => {
+    let isMounted = true;
+
+    const initAuth = async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (!isMounted) return;
+        if (error) {
+          console.error("取得使用者資訊失敗:", error);
+        }
+        setCurrentUser(data?.user ?? null);
+      } finally {
+        if (isMounted) setAuthLoading(false);
+      }
+    };
+
+    initAuth();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
+      setCurrentUser(session?.user ?? null);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // 🔹 基本導覽（所有人看得到）
+  const baseNavItems: NavItem[] = [
+    {
+      name: "AI寵物諮詢",
+      href: "https://gemini.google.com/gem/1iQFA-1G23_Mg8E7-J8yi72p5uCf0oy6I?usp=sharing",
+    },
     { name: "寵物詳細資訊", href: "/pet" },
     { name: "領養須知", href: "/pet/petInfo" },
     { name: "我的領養申請", href: "/pet/my-adoptions" },
-  ]
+  ];
 
-  const handleDrawerToggle = () => {
-    setMobileMenuOpen(!mobileMenuOpen)
-  }
+  // 🔹 有權限上架寵物的帳號（白名單）
+  const uploaderEmails = ["jeff1050032@gmail.com","a0976278215@gmail.com"];
+  const isPetUploader =
+    !!currentUser && uploaderEmails.includes(currentUser.email ?? "");
+
+  // 🔹 最終要顯示的 navItems：如果有權限，就多一個「上架寵物」
+  const navItems: NavItem[] = [
+    ...baseNavItems,
+    ...(isPetUploader
+      ? [{ name: "上架寵物", href: "/pet/upload" } as NavItem]
+      : []),
+  ];
 
   return (
     <>
@@ -55,7 +130,14 @@ export function Header() {
         <Container maxWidth="lg">
           <Toolbar disableGutters sx={{ minHeight: 64 }}>
             {/* Logo 和標題 */}
-            <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
+            <Link
+              href="/"
+              style={{
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
               <Box
                 sx={{
                   display: "flex",
@@ -78,7 +160,9 @@ export function Header() {
                     justifyContent: "center",
                   }}
                 >
-                  <PetsIcon sx={{ color: "primary.contrastText", fontSize: 24 }} />
+                  <PetsIcon
+                    sx={{ color: "primary.contrastText", fontSize: 24 }}
+                  />
                 </Box>
                 <Box>
                   <Typography
@@ -105,14 +189,30 @@ export function Header() {
               </Box>
             </Link>
 
-            {/* 桌面導航 */}
+            {/* 桌面版導航 + 帳號選單 */}
             {!isMobile && (
-              <Box sx={{ display: "flex", gap: 1, ml: "auto" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 1,
+                  ml: "auto",
+                  alignItems: "center",
+                }}
+              >
                 {navItems.map((item) => (
                   <Button
                     key={item.name}
                     component={Link}
                     href={item.href}
+                    // 外部連結（Gemini）新分頁開啟
+                    target={
+                      item.href.startsWith("http") ? "_blank" : undefined
+                    }
+                    rel={
+                      item.href.startsWith("http")
+                        ? "noopener noreferrer"
+                        : undefined
+                    }
                     sx={{
                       color: "text.primary",
                       fontWeight: 500,
@@ -129,32 +229,80 @@ export function Header() {
                     {item.name}
                   </Button>
                 ))}
-                <Box
+
+                {/* 帳號下拉按鈕 */}
+                <Button
+                  onClick={handleAccountMenuOpen}
+                  startIcon={<AccountCircleIcon sx={{ fontSize: 20 }} />}
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
+                    ml: 1,
+                    color: "text.primary",
+                    fontWeight: 500,
+                    fontSize: "0.875rem",
                     px: 2,
                     py: 1,
                     borderRadius: 1,
+                    textTransform: "none",
                     backgroundColor: "action.hover",
+                    "&:hover": {
+                      backgroundColor: "action.selected",
+                    },
                   }}
                 >
-                  <AccountCircleIcon sx={{ color: "primary.main", fontSize: 20 }} />
-                  <Typography
-                    sx={{
-                      color: "text.primary",
-                      fontWeight: 500,
-                      fontSize: "0.875rem",
-                    }}
-                  >
-                    {account}
-                  </Typography>
-                </Box>
+                  {authLoading
+                    ? "載入中..."
+                    : currentUser
+                    ? "會員中心（已登入）"
+                    : "會員中心"}
+                </Button>
+
+                {/* 下拉選單：未登入 => 登入 / 註冊；已登入 => 登出 */}
+                <Menu
+                  anchorEl={accountMenuAnchorEl}
+                  open={isAccountMenuOpen}
+                  onClose={handleAccountMenuClose}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                  }}
+                >
+                  {currentUser ? (
+                    <MenuItem
+                      component={Link}
+                      href="/logout"
+                      onClick={handleAccountMenuClose}
+                    >
+                      登出
+                    </MenuItem>
+                  ) : (
+                    [
+                      <MenuItem
+                        key="login"
+                        component={Link}
+                        href="/L"
+                        onClick={handleAccountMenuClose}
+                      >
+                        登入
+                      </MenuItem>,
+                      <MenuItem
+                        key="signup"
+                        component={Link}
+                        href="/signup"
+                        onClick={handleAccountMenuClose}
+                      >
+                        註冊
+                      </MenuItem>,
+                    ]
+                  )}
+                </Menu>
               </Box>
             )}
 
-            {/* 移動端菜單按鈕 */}
+            {/* 手機版漢堡選單按鈕 */}
             {isMobile && (
               <IconButton
                 color="inherit"
@@ -170,7 +318,7 @@ export function Header() {
         </Container>
       </AppBar>
 
-      {/* 移動端側邊欄 */}
+      {/* 手機版側邊欄 */}
       <Drawer
         anchor="right"
         open={mobileMenuOpen}
@@ -182,7 +330,6 @@ export function Header() {
         }}
       >
         <Box sx={{ pt: 2 }}>
-          {/* 帳號資訊 */}
           <Box
             sx={{
               display: "flex",
@@ -204,7 +351,11 @@ export function Header() {
                 fontSize: "0.875rem",
               }}
             >
-              {account}
+              {authLoading
+                ? "會員中心（載入中）"
+                : currentUser
+                ? "會員中心（已登入）"
+                : "會員中心"}
             </Typography>
           </Box>
 
@@ -214,6 +365,14 @@ export function Header() {
                 <ListItemButton
                   component={Link}
                   href={item.href}
+                  target={
+                    item.href.startsWith("http") ? "_blank" : undefined
+                  }
+                  rel={
+                    item.href.startsWith("http")
+                      ? "noopener noreferrer"
+                      : undefined
+                  }
                   onClick={handleDrawerToggle}
                   sx={{
                     py: 1.5,
@@ -233,9 +392,65 @@ export function Header() {
                 </ListItemButton>
               </ListItem>
             ))}
+
+            {/* 手機版：依登入狀態切換登入 / 登出 + 註冊 */}
+            {currentUser ? (
+              <ListItem disablePadding>
+                <ListItemButton
+                  component={Link}
+                  href="/logout"
+                  onClick={handleDrawerToggle}
+                  sx={{ py: 1.5, px: 3 }}
+                >
+                  <ListItemText
+                    primary="登出"
+                    primaryTypographyProps={{
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            ) : (
+              <>
+                <ListItem disablePadding>
+                  <ListItemButton
+                    component={Link}
+                    href="/L"
+                    onClick={handleDrawerToggle}
+                    sx={{ py: 1.5, px: 3 }}
+                  >
+                    <ListItemText
+                      primary="登入"
+                      primaryTypographyProps={{
+                        fontSize: "0.875rem",
+                        fontWeight: 500,
+                      }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+
+                <ListItem disablePadding>
+                  <ListItemButton
+                    component={Link}
+                    href="/signup"
+                    onClick={handleDrawerToggle}
+                    sx={{ py: 1.5, px: 3 }}
+                  >
+                    <ListItemText
+                      primary="註冊"
+                      primaryTypographyProps={{
+                        fontSize: "0.875rem",
+                        fontWeight: 500,
+                      }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              </>
+            )}
           </List>
         </Box>
       </Drawer>
     </>
-  )
+  );
 }
