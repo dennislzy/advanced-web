@@ -9,6 +9,8 @@ import {
   Button,
   Box,
   CardActions,
+  Stack,
+  CircularProgress,
 } from "@mui/material"
 import { useRouter } from "next/navigation"
 import PetsIcon from "@mui/icons-material/Pets"
@@ -16,6 +18,7 @@ import MaleIcon from "@mui/icons-material/Male"
 import FemaleIcon from "@mui/icons-material/Female"
 import HomeIcon from "@mui/icons-material/Home"
 import EditIcon from "@mui/icons-material/Edit"
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"
 import { Pet } from "@/model/petModel"
 import { supabase } from "@/config/supabase.client"
 
@@ -35,23 +38,31 @@ export default function PetCard({
   showViewDetailsButton = true,
 }: PetCardProps) {
   const router = useRouter()
+
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isAuthed, setIsAuthed] = useState(false) // ✅ 跟上架權限一致：只要登入即可
+  const [unpublishLoading, setUnpublishLoading] = useState(false)
 
   useEffect(() => {
     let alive = true
 
-    const checkAdmin = async () => {
+    const checkAuth = async () => {
       const { data, error } = await supabase.auth.getUser()
       if (!alive) return
-      if (error) {
+
+      if (error || !data.user) {
+        setIsAuthed(false)
         setIsAdmin(false)
         return
       }
-      const email = (data.user?.email ?? "").toLowerCase()
+
+      setIsAuthed(true)
+
+      const email = (data.user.email ?? "").toLowerCase()
       setIsAdmin(email === ADMIN_EMAIL)
     }
 
-    checkAdmin()
+    checkAuth()
 
     return () => {
       alive = false
@@ -64,6 +75,37 @@ export default function PetCard({
 
   const handleEdit = () => {
     router.push(`/pet/${pet.pet_id}/edit`)
+  }
+
+  // ✅ 下架：呼叫 /api/pets/[pet_id]/unpublish（登入即可）
+  const handleUnpublish = async () => {
+    if (!isAuthed) {
+      alert("請先登入才能下架寵物")
+      return
+    }
+
+    const ok = confirm(`確定要下架「${pet.pet_name}」嗎？`)
+    if (!ok) return
+
+    setUnpublishLoading(true)
+    try {
+      const res = await fetch(`/api/pets/${pet.pet_id}/unpublish`, {
+        method: "PATCH",
+      })
+
+      const raw = await res.text()
+      if (!res.ok) {
+        throw new Error(`下架失敗（${res.status}）：${raw.slice(0, 200)}`)
+      }
+
+      alert("下架成功！")
+      router.refresh() // 讓列表重新抓資料
+    } catch (err) {
+      console.error("下架寵物失敗：", err)
+      alert(err instanceof Error ? err.message : "下架失敗，請稍後再試")
+    } finally {
+      setUnpublishLoading(false)
+    }
   }
 
   return (
@@ -141,24 +183,50 @@ export default function PetCard({
           </Box>
         </Box>
 
-        {/* ✅ 只有指定 Gmail 才顯示「修改」 */}
-        {isAdmin && (
-          <Button
-            variant="outlined"
-            fullWidth
-            startIcon={<EditIcon />}
-            onClick={handleEdit}
-            sx={{
-              mt: 0.5,
-              borderRadius: 2,
-              textTransform: "none",
-              fontSize: "0.95rem",
-              fontWeight: 600,
-            }}
-          >
-            修改寵物資訊
-          </Button>
-        )}
+        {/* ✅ 按鈕區：修改(只有 Jeff) + 下架(只要登入，跟上架一致) */}
+        <Stack spacing={1.2} sx={{ mt: 0.5 }}>
+          {isAdmin && (
+            <Button
+              variant="outlined"
+              fullWidth
+              startIcon={<EditIcon />}
+              onClick={handleEdit}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                fontSize: "0.95rem",
+                fontWeight: 600,
+              }}
+            >
+              修改寵物資訊
+            </Button>
+          )}
+
+          {isAuthed && (
+            <Button
+              variant="outlined"
+              color="error"
+              fullWidth
+              startIcon={
+                unpublishLoading ? (
+                  <CircularProgress size={18} />
+                ) : (
+                  <DeleteOutlineIcon />
+                )
+              }
+              disabled={unpublishLoading}
+              onClick={handleUnpublish}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                fontSize: "0.95rem",
+                fontWeight: 600,
+              }}
+            >
+              下架寵物
+            </Button>
+          )}
+        </Stack>
 
         {showViewDetailsButton && (
           <Button

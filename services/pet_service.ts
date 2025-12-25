@@ -28,7 +28,7 @@ export class PetService extends BaseService {
         const supabase = await this.createClient()
 
         // 先建立查詢物件
-        let query = supabase.from('pet').select('*')
+        let query = supabase.from('pet').select('*').eq("adopt_status", "是")
 
         if (variety) {
             query = query.eq('variety', variety)
