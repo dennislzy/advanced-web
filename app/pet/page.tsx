@@ -29,6 +29,11 @@ export default function PetPage() {
     setPets(results)
   }
 
+  const handlePetDeleted = (petId: string) => {
+    // 從列表中移除已刪除的寵物
+    setPets(prevPets => prevPets ? prevPets.filter(pet => pet.pet_id !== petId) : null)
+  }
+
   return (
     <>
     <Box sx={{ mb: 6, textAlign: "center" }}>
@@ -92,7 +97,7 @@ export default function PetPage() {
           </Box>
         ) : pets?.map((pet) => (
           <Box key={pet.pet_id}>
-            <PetCard pet={pet} />
+            <PetCard pet={pet} onDelete={handlePetDeleted} />
           </Box>
         ))
         }

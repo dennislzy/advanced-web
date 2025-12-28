@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createSupabaseServerClient } from "@/config/supabase.server"
+import { PetService } from "@/services/pet_service"
 
-export async function PATCH(
+export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ pet_id: string }> }
 ) {
@@ -20,24 +21,13 @@ export async function PATCH(
 
     const { pet_id } = await params
 
-    // ✅ 下架：改 adopt_status 為 "否"
-    const { data, error } = await supabase
-      .from("pet")
-      .update({ adopt_status: "否" })
-      .eq("pet_id", pet_id)
-      .select()
-      .single()
+    // ✅ 下架：真正刪除寵物資料
+    const petService = new PetService()
+    await petService.deletePet(pet_id)
 
-    if (error) {
-      return NextResponse.json(
-        { error: error.message, detail: error },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json({ ok: true, pet: data }, { status: 200 })
+    return NextResponse.json({ ok: true, message: "寵物已成功下架" }, { status: 200 })
   } catch (error) {
-    console.error("PATCH /api/pets/[pet_id]/unpublish error:", error)
+    console.error("DELETE /api/pets/[pet_id]/unpublish error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

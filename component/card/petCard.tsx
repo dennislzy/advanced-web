@@ -29,6 +29,7 @@ export interface PetCardProps {
   statusChip?: React.ReactNode // 可選的狀態標籤（如 "已領養" chip）
   actions?: React.ReactNode // 可選的自定義按鈕區域
   showViewDetailsButton?: boolean // 是否顯示查看詳細資訊按鈕，預設為 true
+  onDelete?: (petId: string) => void // 刪除成功後的回調函數
 }
 
 export default function PetCard({
@@ -36,6 +37,7 @@ export default function PetCard({
   statusChip,
   actions,
   showViewDetailsButton = true,
+  onDelete,
 }: PetCardProps) {
   const router = useRouter()
 
@@ -90,7 +92,7 @@ export default function PetCard({
     setUnpublishLoading(true)
     try {
       const res = await fetch(`/api/pets/${pet.pet_id}/unpublish`, {
-        method: "PATCH",
+        method: "DELETE",
       })
 
       const raw = await res.text()
@@ -99,6 +101,10 @@ export default function PetCard({
       }
 
       alert("下架成功！")
+      // 調用回調函數通知父組件更新列表
+      if (onDelete) {
+        onDelete(pet.pet_id)
+      }
       router.refresh() // 讓列表重新抓資料
     } catch (err) {
       console.error("下架寵物失敗：", err)

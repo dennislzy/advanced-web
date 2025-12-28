@@ -27,8 +27,8 @@ export class PetService extends BaseService {
     async getPets(variety?: string): Promise<Pet[]> {
         const supabase = await this.createClient()
 
-        // 先建立查詢物件
-        let query = supabase.from('pet').select('*').eq("adopt_status", "是")
+        // 先建立查詢物件（只顯示可領養的寵物）
+        let query = supabase.from('pet').select('*').eq("adopt_status", "否")
 
         if (variety) {
             query = query.eq('variety', variety)
@@ -73,5 +73,18 @@ export class PetService extends BaseService {
         }
 
         return pet
+    }
+
+    // 刪除寵物
+    async deletePet(id: string): Promise<void> {
+        const supabase = await this.createClient()
+        const { error } = await supabase
+            .from('pet')
+            .delete()
+            .eq('pet_id', id)
+
+        if (error) {
+            throw new Error(error.message)
+        }
     }
 }
