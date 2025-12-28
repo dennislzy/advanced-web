@@ -85,7 +85,7 @@ export default function PetUploadPage() {
         variety,
         shelter_name: shelterName,
         introduction,
-        adopt_status: "是", // 上架時預設可領養
+        adopt_status: "否", // 上架時預設可領養
       };
 
       const res = await fetch("/api/pets", {

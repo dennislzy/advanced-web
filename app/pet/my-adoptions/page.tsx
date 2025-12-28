@@ -80,37 +80,24 @@ export default function MyAdoptionsPage() {
     try {
       setDeleting(true)
 
-      // 1. 刪除領養記錄
+      // 刪除領養記錄（後端會自動更新寵物狀態為可領養）
       const deleteResponse = await fetch(`/api/adopt/record/${selectedRecordId}`, {
         method: 'DELETE',
       })
 
       if (!deleteResponse.ok) {
-        throw new Error('刪除失敗')
-      }
-
-      // 2. 更新寵物的領養狀態為 '是' (可領養)
-      const updateResponse = await fetch(`/api/pets/${adoptionToDelete.pet.pet_id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          adopt_status: '是'
-        })
-      })
-
-      if (!updateResponse.ok) {
-        console.error('更新寵物狀態失敗')
+        const errorData = await deleteResponse.json().catch(() => ({ error: '刪除失敗' }))
+        throw new Error(errorData.error || '刪除失敗')
       }
 
       // 從列表中移除已刪除的項目
       setAdoptions(adoptions.filter(adoption => adoption.record_id !== selectedRecordId))
       setDeleteDialogOpen(false)
       setSelectedRecordId(null)
+      alert('已成功取消領養')
     } catch (err) {
       console.error('Error deleting adoption:', err)
-      alert('取消領養失敗，請稍後再試')
+      alert(err instanceof Error ? err.message : '取消領養失敗，請稍後再試')
     } finally {
       setDeleting(false)
     }

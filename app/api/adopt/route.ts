@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     // ✅ 建立領養申請 - 只插入資料表存在的欄位
     const { data: application, error } = await supabase
       .from('adopt_record')
-      .insert([{ 
+      .insert([{
         user_account: user.id,  // UUID from auth
         pet_id: pet_id          // UUID from request
         // created_at 會自動使用 now()
@@ -83,9 +83,21 @@ export async function POST(request: Request) {
       )
     }
 
-    return NextResponse.json({ 
+    // ✅ 自動更新寵物的領養狀態為「是」（已被領養）
+    const { error: updateError } = await supabase
+      .from('pet')
+      .update({ adopt_status: '是' })
+      .eq('pet_id', pet_id)
+
+    if (updateError) {
+      console.error('Error updating pet status:', updateError)
+      // 即使更新失敗，領養記錄已建立，仍返回成功
+      // 可以考慮記錄警告日誌
+    }
+
+    return NextResponse.json({
       message: '領養申請已送出',
-      data: application 
+      data: application
     }, { status: 201 })
 
   } catch (error) {

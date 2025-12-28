@@ -98,38 +98,24 @@ export default function PetDetailPage({
     if (!pet) return
 
     try {
-      // TODO: 這裡應該換成真實登入者（supabase user）
-      const user_account = "test1@gmail.com"
-
-      // 1. 創建領養記錄
+      // 創建領養記錄（後端會自動更新寵物狀態）
       const adoptResponse = await fetch("/api/adopt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pet_id: pet.pet_id,
-          user_account,
         }),
       })
 
       if (!adoptResponse.ok) {
-        throw new Error("領養申請失敗")
-      }
-
-      // 2. 更新寵物領養狀態（你的 API 也是 /api/pets）
-      const updateResponse = await fetch(`/api/pets/${pet.pet_id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adopt_status: "否" }),
-      })
-
-      if (!updateResponse.ok) {
-        console.error("更新寵物狀態失敗")
+        const errorData = await adoptResponse.json()
+        throw new Error(errorData.error || "領養申請失敗")
       }
 
       alert(`感謝您願意領養 ${pet.pet_name}！我們會盡快與您聯繫。`)
       setOpenDialog(false)
 
-      // 重新載入
+      // 重新載入寵物資料以顯示最新狀態
       const refreshResponse = await fetch(`/api/pets/${pet_id}`)
       if (refreshResponse.ok) {
         const updatedPet = await refreshResponse.json()
@@ -137,7 +123,7 @@ export default function PetDetailPage({
       }
     } catch (error) {
       console.error("Error adopting pet:", error)
-      alert("領養申請過程中發生錯誤，請稍後再試。")
+      alert(error instanceof Error ? error.message : "領養申請過程中發生錯誤，請稍後再試。")
     }
   }
 
@@ -205,7 +191,7 @@ export default function PetDetailPage({
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Chip
                       icon={<FavoriteIcon />}
-                      label={pet.adopt_status === "是" ? "可領養" : "已領養"}
+                      label={pet.adopt_status === "否" ? "可領養" : "已領養"}
                       color="success"
                       sx={{ fontWeight: 600 }}
                     />
@@ -291,7 +277,7 @@ export default function PetDetailPage({
                   fullWidth
                   startIcon={<FavoriteIcon />}
                   onClick={handleAdoptClick}
-                  disabled={pet.adopt_status === "否"}
+                  disabled={pet.adopt_status === "是"}
                   sx={{
                     mt: 4,
                     py: 1.5,
@@ -299,9 +285,17 @@ export default function PetDetailPage({
                     textTransform: "none",
                     fontSize: "1.1rem",
                     fontWeight: 600,
+                    bgcolor: pet.adopt_status === "是" ? "grey.400" : "primary.main",
+                    "&:hover": {
+                      bgcolor: pet.adopt_status === "是" ? "grey.400" : "primary.dark",
+                    },
+                    "&.Mui-disabled": {
+                      bgcolor: "grey.400",
+                      color: "grey.700",
+                    },
                   }}
                 >
-                  我想領養 {pet.pet_name}
+                  {pet.adopt_status === "是" ? `${pet.pet_name} 已被領養` : `我想領養 ${pet.pet_name}`}
                 </Button>
               </Box>
             </Grid>
