@@ -19,6 +19,7 @@ type EditPetPayload = {
   variety: string
   shelter_name: string
   pet_image: string | null
+  introduction: string | null   // ✅ 新增
 }
 
 const BUCKET = "pet-images"
@@ -40,7 +41,7 @@ export default function EditPetForm({ pet }: { pet: EditPetPayload }) {
 
   const onChange =
     (key: keyof EditPetPayload) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setForm((prev) => ({ ...prev, [key]: e.target.value }))
     }
 
@@ -95,6 +96,7 @@ export default function EditPetForm({ pet }: { pet: EditPetPayload }) {
           variety: form.variety,
           shelter_name: form.shelter_name,
           pet_image: imageUrl,
+          introduction: form.introduction, // ✅ 一併送出
         }),
       })
 
@@ -117,7 +119,7 @@ export default function EditPetForm({ pet }: { pet: EditPetPayload }) {
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       {error && <Alert severity="error">{error}</Alert>}
 
-      {/* ✅ 圖片預覽 */}
+      {/* 圖片預覽 */}
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
         <Typography variant="subtitle2" color="text.secondary">
           圖片預覽
@@ -138,7 +140,7 @@ export default function EditPetForm({ pet }: { pet: EditPetPayload }) {
         />
       </Box>
 
-      {/* ✅ 選取圖片 */}
+      {/* 選取圖片 */}
       <Box>
         <Typography variant="subtitle2" sx={{ mb: 1 }}>
           選取圖片
@@ -181,6 +183,17 @@ export default function EditPetForm({ pet }: { pet: EditPetPayload }) {
         value={form.shelter_name}
         onChange={onChange("shelter_name")}
         fullWidth
+      />
+
+      {/* ✅ 新增：寵物介紹 */}
+      <TextField
+        label="寵物介紹"
+        value={form.introduction ?? ""}
+        onChange={onChange("introduction")}
+        fullWidth
+        multiline
+        minRows={4}
+        placeholder="請輸入寵物的個性、背景、照護需求等"
       />
 
       <Box sx={{ display: "flex", gap: 2 }}>
