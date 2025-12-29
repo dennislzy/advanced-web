@@ -10,7 +10,7 @@ export function AuthRoute({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/L')
+      router.push('/login')
     }
   }, [user, loading, router])
 

@@ -42,7 +42,7 @@ export default function LogoutPage() {
 
       // 登出成功後延遲一下再重定向，讓用戶看到成功訊息
       setTimeout(() => {
-        router.push('/L')
+        router.push('/login')
         router.refresh()
       }, 1000)
     } catch (err) {
