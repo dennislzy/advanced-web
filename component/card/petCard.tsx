@@ -251,7 +251,7 @@ export default function PetCard({
             查看詳細資訊
           </Button>
         )}
-      </CardContent
+      </CardContent>
       {actions && <CardActions sx={{ p: 2, pt: 0 }}>{actions}</CardActions>}
     </Card>
   )
