@@ -43,7 +43,7 @@ export default function LoginPage() {
 
       if (data.user) {
         console.log('登入成功:', data.user.email)
-        router.push('/')
+        router.push('/pet')
         router.refresh()
       }
     } catch (err) {
@@ -211,6 +211,7 @@ export default function LoginPage() {
                     fullWidth
                     label="電郵地址"
                     type="email"
+                    id = "email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -245,6 +246,7 @@ export default function LoginPage() {
                     fullWidth
                     label="密碼"
                     type="password"
+                    id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -315,6 +317,7 @@ export default function LoginPage() {
                         boxShadow: 'none',
                       },
                     }}
+                    id='login-button'
                   >
                     {loading ? (
                       <CircularProgress size={24} sx={{ color: 'white' }} />

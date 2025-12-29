@@ -30,7 +30,7 @@ export default async function EditPetPage({
   // ✅ 讀取寵物資料
   const { data: pet, error } = await supabase
     .from("pet")
-    .select("pet_id, pet_name, gender, variety, shelter_name, pet_image")
+    .select("pet_id, pet_name, gender, variety, shelter_name, pet_image, introduction")
     .eq("pet_id", pet_id)
     .single()
 
